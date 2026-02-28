@@ -1,0 +1,17 @@
+<h1>Pedidos Recebidos</h1>
+
+{% for pedido in pedidos %}
+
+<div style="border:1px solid #ccc; padding:15px; margin:10px;">
+
+Cliente: {{ pedido.cliente.username }} <br>
+Serviço: {{ pedido.servico.nome }} <br>
+Status: {{ pedido.status }}
+
+</div>
+
+{% empty %}
+
+<p>Nenhum pedido ainda.</p>
+
+{% endfor %}

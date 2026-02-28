@@ -1,0 +1,10 @@
+<h1>Novo Serviço</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">
+        Salvar Serviço
+    </button>
+</form>

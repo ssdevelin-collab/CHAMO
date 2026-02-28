@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Pedidos Recebidos 📥</h2>
+
+{% for pedido in pedidos %}
+
+<div style="border:1px solid #ccc; padding:15px; margin:15px;">
+
+    <strong>Cliente:</strong>
+    {{ pedido.cliente.username }}
+
+    <br>
+
+    <strong>Serviço:</strong>
+    {{ pedido.servico.nome }}
+
+    <br>
+
+    <strong>Status:</strong>
+    {{ pedido.status }}
+
+    <br><br>
+
+    {% if pedido.status == 'pendente' %}
+
+        <a href="{% url 'services:aceitar_pedido' pedido.id %}">
+            ✅ Aceitar
+        </a>
+
+        |
+
+        <a href="{% url 'services:recusar_pedido' pedido.id %}">
+            ❌ Recusar
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% empty %}
+<p>Nenhum pedido recebido.</p>
+{% endfor %}
+
+{% endblock %}

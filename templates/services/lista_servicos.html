@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Encontrar Serviços</title>
+</head>
+<body>
+
+<h1>Encontrar Serviços</h1>
+
+<form method="GET">
+
+    <input
+        type="text"
+        name="busca"
+        placeholder="Qual serviço você procura?"
+        value="{{ request.GET.busca }}"
+    >
+
+    <input
+        type="text"
+        name="cidade"
+        placeholder="Cidade"
+        value="{{ request.GET.cidade }}"
+    >
+
+    <button type="submit">
+        Buscar
+    </button>
+
+</form>
+
+<hr>
+
+{% for servico in servicos %}
+
+<div style="border:1px solid #ccc; padding:15px; margin:15px; border-radius:8px;">
+
+    <h3>{{ servico.nome }}</h3>
+
+    <p>{{ servico.descricao }}</p>
+
+    <strong>Categoria:</strong>
+    {{ servico.categoria }}
+
+    <br>
+
+    <strong>Preço:</strong>
+    R$ {{ servico.preco }}
+
+    <br>
+
+    <strong>Prestador:</strong>
+    {{ servico.prestador.username }}
+
+    <br>
+
+    <strong>Cidade:</strong>
+    {{ servico.prestador.city }}
+
+    <br><br>
+
+    {% if user.user_type == 'cliente' %}
+        <a href="{% url 'services:contratar_servico' servico.id %}">
+            🚀 Contratar Serviço
+        </a>
+    {% endif %}
+
+</div>
+
+{% empty %}
+
+<p>Nenhum serviço encontrado.</p>
+
+{% endfor %}
+
+</body>
+</html>

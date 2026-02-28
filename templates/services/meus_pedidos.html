@@ -1,0 +1,12 @@
+<h1>Meus Pedidos</h1>
+
+{% for pedido in pedidos %}
+
+<div>
+    <strong>{{ pedido.servico.titulo }}</strong><br>
+    Status: {{ pedido.status }}
+</div>
+
+{% empty %}
+<p>Você não possui pedidos.</p>
+{% endfor %}

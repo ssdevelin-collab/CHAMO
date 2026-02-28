@@ -1,0 +1,31 @@
+<h2>Buscar</h2>
+
+<form method="get">
+<input type="text" name="q" placeholder="Buscar serviço ou prestador">
+<button>Pesquisar</button>
+</form>
+
+<hr>
+
+<h3>Prestadores</h3>
+
+{% for p in prestadores %}
+<p>
+{{ p.username }}
+<a href="/servicos/prestador/{{ p.id }}/">Ver</a>
+</p>
+{% empty %}
+<p>Nenhum prestador encontrado</p>
+{% endfor %}
+
+<hr>
+
+<h3>Serviços</h3>
+
+{% for s in servicos %}
+<p>
+<b>{{ s.nome }}</b> — R$ {{ s.preco }}
+</p>
+{% empty %}
+<p>Nenhum serviço encontrado</p>
+{% endfor %}

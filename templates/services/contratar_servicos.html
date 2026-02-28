@@ -1,0 +1,13 @@
+<h1>Contratar Serviço</h1>
+
+<h2>{{ servico.nome }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+        Confirmar Contratação
+    </button>
+</form>

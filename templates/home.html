@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="text-center">
+
+    <h1>🚀 Bem-vindo ao CHAMÔ</h1>
+
+    <p class="lead">
+        Conectando clientes e prestadores de serviço.
+    </p>
+
+    {% if user.is_authenticated %}
+        <a class="btn btn-success btn-lg">
+            Ir para o painel
+        </a>
+    {% else %}
+        <a href="/register/" class="btn btn-primary btn-lg">
+            Criar conta
+        </a>
+    {% endif %}
+    <a href="{% url 'services:lista_servicos' %}">
+        Buscar Serviços
+    </a>
+
+</div>
+
+{% endblock %}
