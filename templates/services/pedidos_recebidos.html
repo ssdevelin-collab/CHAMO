@@ -1,17 +1,56 @@
-<h1>Pedidos Recebidos</h1>
+<p>Usuário logado: {{ request.user }}</p>
+<p>Total pedidos: {{ pedidos|length }}</p>
 
-{% for pedido in pedidos %}
+{% extends 'base.html' %}
 
-<div style="border:1px solid #ccc; padding:15px; margin:10px;">
+{% block content %}
 
-Cliente: {{ pedido.cliente.username }} <br>
-Serviço: {{ pedido.servico.nome }} <br>
-Status: {{ pedido.status }}
+<h2>Pedidos Recebidos 🔧</h2>
 
-</div>
+{% if pedidos %}
 
-{% empty %}
+    {% for pedido in pedidos %}
 
-<p>Nenhum pedido ainda.</p>
+        <div style="border:1px solid #ccc; padding:15px; margin:10px;">
 
-{% endfor %}
+            <h3>{{ pedido.servico.nome }}</h3>
+
+            <p><strong>Cliente:</strong> {{ pedido.cliente.username }}</p>
+            <p><strong>Status:</strong> {{ pedido.get_status_display }}</p>
+
+            
+            {% if pedido.status == 'pendente' %}
+
+                <a href="{% url 'services:aceitar_pedido' pedido.id %}">
+                    ✅ Aceitar
+                </a>
+
+                <a href="{% url 'services:recusar_pedido' pedido.id %}">
+                    ❌ Recusar
+                </a>
+
+            {% elif pedido.status == 'aceito' %}
+
+                <a href="{% url 'services:iniciar_servico' pedido.id %}">
+                    🚧 Iniciar Serviço
+                </a>
+
+            {% elif pedido.status == 'em_andamento' %}
+
+                <a href="{% url 'services:finalizar_servico' pedido.id %}">
+                    ✔ Finalizar Serviço
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endfor %}
+
+{% else %}
+
+<p>Nenhum pedido recebido.</p>
+
+{% endif %}
+
+{% endblock %}

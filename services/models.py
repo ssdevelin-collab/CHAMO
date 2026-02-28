@@ -4,9 +4,6 @@ from django.conf import settings
 User = settings.AUTH_USER_MODEL
 
 
-# ======================
-# SERVICE
-# ======================
 class Service(models.Model):
 
     prestador = models.ForeignKey(
@@ -25,15 +22,13 @@ class Service(models.Model):
     def __str__(self):
         return self.nome
 
-
-# ======================
-# PEDIDO
-# ======================
 class Pedido(models.Model):
 
     STATUS = (
         ('pendente', 'Pendente'),
         ('aceito', 'Aceito'),
+        ('em_andamento', 'Em andamento'),
+        ('finalizado', 'Finalizado'),
         ('recusado', 'Recusado'),
     )
 

@@ -1,26 +1,17 @@
-<h1>Dashboard do Prestador</h1>
+{% extends 'base.html' %}
 
-<p>Bem-vindo {{ user.username }}</p>
+{% block content %}
 
-<a href="{% url 'accounts:perfil_prestador' %}">
-    Editar Perfil
+<h2>Área do Prestador 🔧</h2>
+
+<a href="{% url 'services:criar_servico' %}">
+    ➕ Criar Serviço
 </a>
 
 <br><br>
 
-<a href="{% url 'services:criar_servico' %}">
-    + Novo Serviço
+<a href="{% url 'services:pedidos_prestador' %}">
+    📋 Ver Pedidos Recebidos
 </a>
 
-<hr>
-
-<h2>Meus Serviços</h2>
-
-{% for servico in servicos %}
-    <p>
-        <strong>{{ servico.titulo }}</strong><br>
-        {{ servico.descricao }}
-    </p>
-{% empty %}
-    <p>Você ainda não cadastrou serviços.</p>
-{% endfor %}
+{% endblock %}

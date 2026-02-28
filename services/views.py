@@ -140,24 +140,15 @@ def meus_pedidos(request):
     )
 
 
-
 @login_required
 def pedidos_prestador(request):
 
-    print("USUÁRIO LOGADO:", request.user)
-    print("TIPO:", request.user.user_type)
-
-    pedidos = Pedido.objects.all()
-
-    for p in pedidos:
-        print(
-            p.id,
-            p.servico.nome,
-            p.servico.prestador
-        )
+    if request.user.user_type != 'prestador':
+        return redirect('accounts:dashboard')
 
     pedidos = Pedido.objects.filter(
-        servico__prestador_id=request.user.id
+        servico__prestador=request.user,
+        status='pendente'
     )
 
     return render(
@@ -191,3 +182,73 @@ def recusar_pedido(request, pedido_id):
     pedido.save()
 
     return redirect('services:pedidos_prestador')
+
+@login_required
+def iniciar_servico(request, pedido_id):
+
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+
+    if pedido.servico.prestador != request.user:
+        return redirect('accounts:dashboard')
+
+    pedido.status = 'em_andamento'
+    pedido.save()
+
+    return redirect('services:pedidos_prestador')
+
+
+@login_required
+def finalizar_servico(request, pedido_id):
+
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+
+    if pedido.servico.prestador != request.user:
+        return redirect('accounts:dashboard')
+
+    pedido.status = 'finalizado'
+    pedido.save()
+
+    return redirect('services:pedidos_prestador')
+
+def pedidos_recebidos(request):
+
+    pedidos = Pedido.objects.filter(
+        servico__prestador=request.user
+    ).order_by('-criado_em')
+
+    return render(request, 'services/pedidos_recebidos.html', {
+        'pedidos': pedidos
+    })
+
+@login_required
+def servicos_andamento(request):
+
+    if request.user.user_type != 'prestador':
+        return redirect('accounts:dashboard')
+
+    pedidos = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status__in=['aceito', 'em_andamento']
+    )
+
+    return render(
+        request,
+        'services/servicos_andamento.html',
+        {'pedidos': pedidos}
+    )
+@login_required
+def servicos_andamento(request):
+
+    if request.user.user_type != 'prestador':
+        return redirect('accounts:dashboard')
+
+    pedidos = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status__in=['aceito', 'em_andamento']
+    ).order_by('-criado_em')
+
+    return render(
+        request,
+        'services/servicos_andamento.html',
+        {'pedidos': pedidos}
+    )

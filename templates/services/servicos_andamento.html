@@ -1,0 +1,20 @@
+<h2>Serviços em Andamento</h2>
+
+{% for pedido in pedidos %}
+
+<p>{{ pedido.servico.nome }}</p>
+<p>Status: {{ pedido.status }}</p>
+
+{% if pedido.status == 'aceito' %}
+<a href="#">🚧 Iniciar</a>
+{% endif %}
+
+{% if pedido.status == 'em_andamento' %}
+<a href="#">✅ Finalizar</a>
+{% endif %}
+
+<hr>
+
+{% empty %}
+<p>Nenhum serviço em andamento.</p>
+{% endfor %}

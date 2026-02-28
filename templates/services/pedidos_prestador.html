@@ -1,12 +1,10 @@
-{% extends 'base.html' %}
+<h2>Pedidos Recebidos</h2>
 
-{% block content %}
-
-<h2>Pedidos Recebidos 📥</h2>
+<p>Total pedidos: {{ pedidos|length }}</p>
 
 {% for pedido in pedidos %}
 
-<div style="border:1px solid #ccc; padding:15px; margin:15px;">
+<div style="border:1px solid #ccc; padding:15px; margin:10px;">
 
     <strong>Cliente:</strong>
     {{ pedido.cliente.username }}
@@ -24,17 +22,13 @@
     <br><br>
 
     {% if pedido.status == 'pendente' %}
-
         <a href="{% url 'services:aceitar_pedido' pedido.id %}">
             ✅ Aceitar
         </a>
 
-        |
-
         <a href="{% url 'services:recusar_pedido' pedido.id %}">
             ❌ Recusar
         </a>
-
     {% endif %}
 
 </div>
@@ -42,5 +36,3 @@
 {% empty %}
 <p>Nenhum pedido recebido.</p>
 {% endfor %}
-
-{% endblock %}

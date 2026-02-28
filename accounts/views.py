@@ -4,18 +4,14 @@ from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm, PrestadorProfileForm
 from .models import PrestadorProfile
 from services.models import Service
+from services.models import Service, Pedido
 
 
-# ===============================
-# HOME
-# ===============================
+
 def home(request):
     return render(request, 'home.html')
 
 
-# ===============================
-# REGISTRO
-# ===============================
 def register(request):
 
     if request.method == 'POST':
@@ -31,23 +27,17 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
-# ===============================
-# DASHBOARD PRINCIPAL
-# ===============================
 @login_required
 def dashboard(request):
 
-    # se for prestador → vai pro painel dele
+  
     if request.user.user_type == 'prestador':
         return redirect('accounts:dashboard_prestador')
 
-    # se for cliente
+   
     return redirect('accounts:dashboard_cliente')
 
 
-# ===============================
-# DASHBOARD CLIENTE
-# ===============================
 @login_required
 def dashboard_cliente(request):
     return render(
@@ -56,34 +46,40 @@ def dashboard_cliente(request):
     )
 
 
-# ===============================
-# DASHBOARD PRESTADOR
-# ===============================
 @login_required
 def dashboard_prestador(request):
-
-    # bloqueia cliente
-    if request.user.user_type != 'prestador':
-        return redirect('accounts:dashboard')
 
     servicos = Service.objects.filter(
         prestador=request.user
     )
 
+    pedidos_pendentes = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status='pendente'
+    )
+
+    pedidos_andamento = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status__in=['aceito', 'em_andamento']
+    )
+
+    context = {
+        'servicos': servicos,
+        'pedidos_pendentes': pedidos_pendentes,
+        'pedidos_andamento': pedidos_andamento,
+    }
+
     return render(
         request,
         'accounts/dashboard_prestador.html',
-        {'servicos': servicos}
+        context
     )
 
 
-# ===============================
-# PERFIL DO PRESTADOR
-# ===============================
 @login_required
 def perfil_prestador(request):
 
-    # bloqueia cliente
+
     if request.user.user_type != 'prestador':
         return redirect('accounts:dashboard')
 

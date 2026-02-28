@@ -6,9 +6,9 @@ app_name = 'services'
 urlpatterns = [
 
     path('', views.lista_servicos, name='lista_servicos'),
+
     path('criar/', views.criar_servico, name='criar_servico'),
-    path('editar/<int:id>/', views.editar_servico, name='editar_servico'),
-    path('excluir/<int:id>/', views.excluir_servico, name='excluir_servico'),
+
     path(
         'contratar/<int:servico_id>/',
         views.contratar_servico,
@@ -21,11 +21,18 @@ urlpatterns = [
         name='meus_pedidos'
     ),
 
-  
+    
     path(
         'pedidos/',
         views.pedidos_prestador,
         name='pedidos_prestador'
+    ),
+
+    
+    path(
+        'andamento/',
+        views.servicos_andamento,
+        name='servicos_andamento'
     ),
 
     path(
@@ -39,4 +46,21 @@ urlpatterns = [
         views.recusar_pedido,
         name='recusar_pedido'
     ),
+
+    path(
+        'iniciar/<int:pedido_id>/',
+        views.iniciar_servico,
+        name='iniciar_servico'
+    ),
+
+    path(
+        'finalizar/<int:pedido_id>/',
+        views.finalizar_servico,
+        name='finalizar_servico'
+    ),
+    path(
+    'servicos-andamento/',
+    views.servicos_andamento,
+    name='servicos_andamento'
+),
 ]
