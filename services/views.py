@@ -4,8 +4,12 @@ from .forms import ServiceForm
 from django.db.models import Q
 from .models import Service, Pedido
 from .forms import PedidoForm
-from django.contrib.auth.decorators import login_required
 from .models import Pedido
+import json
+import math
+from django.http import JsonResponse
+from accounts.models import PrestadorProfile
+
 
 @login_required
 def criar_servico(request):
@@ -191,3 +195,67 @@ def recusar_pedido(request, pedido_id):
     pedido.save()
 
     return redirect('services:pedidos_prestador')
+
+def calcular_distancia(lat1, lon1, lat2, lon2) -> float:
+    """
+    Fórmula de Haversine — calcula distância em km entre dois pontos geográficos.
+    """
+    R = 6371  # raio da Terra em km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2 +
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+         math.sin(dlon / 2) ** 2)
+    return R * 2 * math.asin(math.sqrt(a))
+
+
+@login_required
+def buscar_prestadores(request):
+    """
+    View principal — renderiza o mapa com a lista de prestadores.
+    """
+    return render(request, 'busca/mapa_prestadores.html')
+
+
+@login_required
+def api_prestadores_proximos(request):
+    """
+    Endpoint JSON chamado pelo JavaScript do mapa.
+    Recebe: lat, lng, raio (em km)
+    Retorna: lista de prestadores dentro do raio
+    """
+    try:
+        lat_cliente = float(request.GET.get('lat'))
+        lng_cliente = float(request.GET.get('lng'))
+        raio_km     = float(request.GET.get('raio', 5))  # padrão: 5km
+    except (TypeError, ValueError):
+        return JsonResponse({'erro': 'Parâmetros inválidos.'}, status=400)
+
+    # Busca todos os prestadores ativos com coordenadas cadastradas
+    prestadores = PrestadorProfile.objects.filter(
+        ativo=True,
+        latitude__isnull=False,
+        longitude__isnull=False
+    ).select_related('usuario')
+
+    resultado = []
+    for p in prestadores:
+        distancia = calcular_distancia(lat_cliente, lng_cliente, p.latitude, p.longitude)
+
+        if distancia <= raio_km:
+            resultado.append({
+                'id':          p.id,
+                'nome':        p.nome_empresa,
+                'categoria':   p.categoria,
+                'cidade':      p.cidade,
+                'descricao':   p.descricao[:100] + '...' if len(p.descricao) > 100 else p.descricao,
+                'distancia':   round(distancia, 2),
+                'lat':         p.latitude,
+                'lng':         p.longitude,
+                'foto':        p.foto.url if p.foto else None,
+            })
+
+    # Ordena do mais próximo ao mais distante
+    resultado.sort(key=lambda x: x['distancia'])
+
+    return JsonResponse({'prestadores': resultado})

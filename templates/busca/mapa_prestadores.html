@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row g-3">
+
+    <!-- ===== PAINEL ESQUERDO: controles + lista ===== -->
+    <div class="col-md-4">
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="card-title mb-2">🔍 Prestadores próximos</h5>
+
+                <label class="form-label fw-semibold">
+                    Raio de busca: <span id="raioValor" class="text-success">5 km</span>
+                </label>
+                <input type="range" class="form-range" id="raioSlider"
+                       min="1" max="50" step="1" value="5">
+            </div>
+        </div>
+
+        <!-- Lista de resultados -->
+        <div id="listaPrestadores">
+            <div class="text-center text-muted mt-4" id="loadingMsg">
+                <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+                Obtendo sua localização...
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== MAPA ===== -->
+    <div class="col-md-8">
+        <div id="mapa" style="height: 600px; border-radius: 12px; overflow: hidden;"></div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// =============================================
+// 1. INICIALIZA O MAPA
+// =============================================
+const mapa = L.map('mapa').setView([-12.9714, -38.5014], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(mapa);
+
+let marcadorCliente = null;
+let circuloRaio = null;
+let marcadoresPrestadores = [];
+let latAtual = null;
+let lngAtual = null;
+
+
+// =============================================
+// 2. SLIDER DE RAIO — atualiza ao mover
+// =============================================
+const slider = document.getElementById('raioSlider');
+const raioValor = document.getElementById('raioValor');
+
+slider.addEventListener('input', () => {
+    raioValor.textContent = `${slider.value} km`;
+    if (circuloRaio) circuloRaio.setRadius(slider.value * 1000);
+});
+
+// Ao soltar o slider, refaz a busca com o novo raio
+slider.addEventListener('change', () => {
+    if (latAtual && lngAtual) buscarPrestadores(latAtual, lngAtual);
+});
+
+
+// =============================================
+// 3. PEDE LOCALIZAÇÃO AUTOMATICAMENTE
+// =============================================
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            latAtual = position.coords.latitude;
+            lngAtual = position.coords.longitude;
+            buscarPrestadores(latAtual, lngAtual);
+        },
+        erro => {
+            document.getElementById('loadingMsg').innerHTML = `
+                <div class="alert alert-warning">
+                    ⚠️ Não foi possível obter sua localização.<br>
+                    <small>Verifique as permissões do navegador.</small><br>
+                    <button class="btn btn-sm btn-success mt-2" onclick="pedirLocalizacao()">
+                        Tentar novamente
+                    </button>
+                </div>`;
+        }
+    );
+} else {
+    document.getElementById('loadingMsg').innerHTML =
+        '<div class="alert alert-danger">Seu navegador não suporta geolocalização.</div>';
+}
+
+function pedirLocalizacao() {
+    document.getElementById('loadingMsg').innerHTML = `
+        <div class="spinner-border spinner-border-sm text-success me-2"></div> Obtendo localização...`;
+    navigator.geolocation.getCurrentPosition(pos => {
+        latAtual = pos.coords.latitude;
+        lngAtual = pos.coords.longitude;
+        buscarPrestadores(latAtual, lngAtual);
+    });
+}
+
+
+// =============================================
+// 4. BUSCA OS PRESTADORES VIA API
+// =============================================
+function buscarPrestadores(lat, lng) {
+    const raio = slider.value;
+
+    // Atualiza marcador do cliente
+    if (marcadorCliente) mapa.removeLayer(marcadorCliente);
+    if (circuloRaio)     mapa.removeLayer(circuloRaio);
+
+    const iconeCliente = L.divIcon({
+        html: '<div style="background:#198754;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px rgba(0,0,0,.4)"></div>',
+        iconSize: [16, 16], iconAnchor: [8, 8], className: ''
+    });
+
+    marcadorCliente = L.marker([lat, lng], { icon: iconeCliente })
+        .addTo(mapa)
+        .bindPopup('📍 Você está aqui')
+        .openPopup();
+
+    circuloRaio = L.circle([lat, lng], {
+        radius: raio * 1000,
+        color: '#198754',
+        fillColor: '#198754',
+        fillOpacity: 0.08,
+        weight: 2,
+        dashArray: '6,4'
+    }).addTo(mapa);
+
+    mapa.fitBounds(circuloRaio.getBounds());
+
+    fetch(`/api/prestadores/?lat=${lat}&lng=${lng}&raio=${raio}`)
+        .then(res => res.json())
+        .then(data => renderizarResultados(data.prestadores))
+        .catch(() => {
+            document.getElementById('listaPrestadores').innerHTML =
+                '<div class="alert alert-danger">Erro ao buscar prestadores.</div>';
+        });
+}
+
+
+// =============================================
+// 5. RENDERIZA MARCADORES E LISTA
+// =============================================
+function renderizarResultados(prestadores) {
+    marcadoresPrestadores.forEach(m => mapa.removeLayer(m));
+    marcadoresPrestadores = [];
+
+    const lista = document.getElementById('listaPrestadores');
+
+    if (prestadores.length === 0) {
+        lista.innerHTML = `
+            <div class="alert alert-warning text-center">
+                Nenhum prestador encontrado nesse raio.<br>
+                <small>Tente aumentar a distância!</small>
+            </div>`;
+        return;
+    }
+
+    lista.innerHTML = `<h6 class="text-muted mb-2">${prestadores.length} prestador(es) encontrado(s)</h6>`;
+
+    prestadores.forEach((p, i) => {
+
+        const icone = L.divIcon({
+            html: `<div style="background:#0d6efd;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,.3)">${i+1}</div>`,
+            iconSize: [28, 28], iconAnchor: [14, 14], className: ''
+        });
+
+        const marcador = L.marker([p.lat, p.lng], { icon: icone })
+            .addTo(mapa)
+            .bindPopup(`
+                <strong>${p.nome}</strong><br>
+                🏷️ ${p.categoria}<br>
+                📍 ${p.distancia} km de você
+            `);
+        marcadoresPrestadores.push(marcador);
+
+        const card = document.createElement('div');
+        card.className = 'card mb-2 shadow-sm prestador-card';
+        card.style.cursor = 'pointer';
+        card.innerHTML = `
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge bg-primary me-1">${i+1}</span>
+                        <strong>${p.nome}</strong>
+                    </div>
+                    <span class="badge bg-success">${p.distancia} km</span>
+                </div>
+                <small class="text-muted d-block mt-1">🏷️ ${p.categoria} · 📍 ${p.cidade}</small>
+                <small class="text-muted">${p.descricao}</small>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            mapa.setView([p.lat, p.lng], 15);
+            marcador.openPopup();
+        });
+
+        lista.appendChild(card);
+    });
+}
+</script>
+
+<style>
+    .prestador-card:hover {
+        border-color: #198754 !important;
+        transition: border-color .2s;
+    }
+</style>
+
+{% endblock %}

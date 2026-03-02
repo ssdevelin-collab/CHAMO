@@ -10,4 +10,5 @@ urlpatterns = [
     # SUAS ROTAS
     path('', include('accounts.urls')),
     path('servicos/', include('services.urls')),
+    
 ]

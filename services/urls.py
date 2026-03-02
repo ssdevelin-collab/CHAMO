@@ -39,4 +39,12 @@ urlpatterns = [
         views.recusar_pedido,
         name='recusar_pedido'
     ),
+
+    path(
+        'mapa/', views.buscar_prestadores, name='buscar_prestadores'
+        ),
+
+    path(
+        'api/prestadores/', views.api_prestadores_proximos, name='api_prestadores'
+        ),
 ]
