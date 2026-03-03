@@ -48,6 +48,7 @@ urlpatterns = [
     ),
 
     path(
+<<<<<<< HEAD
         'iniciar/<int:pedido_id>/',
         views.iniciar_servico,
         name='iniciar_servico'
@@ -63,4 +64,12 @@ urlpatterns = [
     views.servicos_andamento,
     name='servicos_andamento'
 ),
+=======
+        'mapa/', views.buscar_prestadores, name='buscar_prestadores'
+        ),
+
+    path(
+        'api/prestadores/', views.api_prestadores_proximos, name='api_prestadores'
+        ),
+>>>>>>> origin/Lorena
 ]

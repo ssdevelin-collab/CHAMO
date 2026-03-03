@@ -10,4 +10,5 @@ urlpatterns = [
    
     path('', include('accounts.urls')),
     path('servicos/', include('services.urls')),
+    
 ]
