@@ -21,14 +21,12 @@ urlpatterns = [
         name='meus_pedidos'
     ),
 
-    
     path(
         'pedidos/',
         views.pedidos_prestador,
         name='pedidos_prestador'
     ),
 
-    
     path(
         'andamento/',
         views.servicos_andamento,
@@ -48,7 +46,6 @@ urlpatterns = [
     ),
 
     path(
-<<<<<<< HEAD
         'iniciar/<int:pedido_id>/',
         views.iniciar_servico,
         name='iniciar_servico'
@@ -59,17 +56,22 @@ urlpatterns = [
         views.finalizar_servico,
         name='finalizar_servico'
     ),
-    path(
-    'servicos-andamento/',
-    views.servicos_andamento,
-    name='servicos_andamento'
-),
-=======
-        'mapa/', views.buscar_prestadores, name='buscar_prestadores'
-        ),
 
     path(
-        'api/prestadores/', views.api_prestadores_proximos, name='api_prestadores'
-        ),
->>>>>>> origin/Lorena
+        'servicos-andamento/',
+        views.servicos_andamento,
+        name='servicos_andamento'
+    ),
+
+    path(
+        'mapa/',
+        views.buscar_prestadores,
+        name='buscar_prestadores'
+    ),
+
+    path(
+        'api/prestadores/',
+        views.api_prestadores_proximos,
+        name='api_prestadores'
+    ),
 ]
