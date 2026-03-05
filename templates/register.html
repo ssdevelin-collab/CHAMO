@@ -1,29 +1,27 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} <!-- Não apagar-->
+{% block content %} <!-- Não apagar-->
 
-{% block content %}
+<body class="d-flex align">
+    
+</body>
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
 
-        <div class="card shadow">
-            <div class="card-body">
 
-                <h3 class="text-center mb-4">Cadastro CHAMÔ</h3>
+
+
 
                 <form method="post">
                     {% csrf_token %}
 
                     {{ form.as_p }}
 
-                    <button class="btn btn-primary w-100">
-                        Cadastrar
-                    </button>
+                    <input type="submit" value="Criar conta">
+
                 </form>
 
-            </div>
-        </div>
-
-    </div>
-</div>
+                <div class="text-center mt-3">
+                    Já tem conta?
+                    <a href="{% url 'login' %}">Entrar</a>
+                </div>
 
 {% endblock %}
