@@ -1,0 +1,39 @@
+<h2>Meu Catálogo de Serviços</h2>
+
+<a href="{% url 'services:criar_servico' %}">
+<button>Criar novo serviço</button>
+</a>
+
+<br><br>
+
+{% for servico in servicos %}
+
+<div style="border:1px solid #ccc;padding:15px;margin-bottom:10px">
+
+{% if servico.foto %}
+<img src="{{ servico.foto.url }}" width="150">
+{% endif %}
+
+<h3>{{ servico.nome }}</h3>
+
+<p>{{ servico.descricao }}</p>
+
+<strong>R$ {{ servico.preco }}</strong>
+
+<br><br>
+
+<a href="{% url 'services:editar_servico' servico.id %}">
+<button>Editar</button>
+</a>
+
+<a href="{% url 'services:excluir_servico' servico.id %}">
+<button>Excluir</button>
+</a>
+
+</div>
+
+{% empty %}
+
+<p>Você ainda não cadastrou serviços.</p>
+
+{% endfor %}

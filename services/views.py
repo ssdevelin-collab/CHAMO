@@ -21,7 +21,7 @@ def criar_servico(request):
         return redirect('accounts:dashboard')
 
     if request.method == 'POST':
-        form = ServiceForm(request.POST, request.FILES)
+        form = ServiceForm(request.POST)
 
         if form.is_valid():
             servico = form.save(commit=False)
@@ -46,7 +46,7 @@ def editar_servico(request, id):
     servico = get_object_or_404(Service, id=id, prestador=request.user)
 
     if request.method == 'POST':
-        form = ServiceForm(request.POST, request.FILES, instance=servico)
+        form = ServiceForm(request.POST, instance=servico)
 
         if form.is_valid():
             form.save()
@@ -101,7 +101,7 @@ def lista_servicos(request):
 
 
 # =========================
-# CLIENTE CONTRATA SERVIÇO
+# CONTRATAR SERVIÇO
 # =========================
 
 @login_required
@@ -143,9 +143,6 @@ def meus_pedidos(request):
 
 @login_required
 def pedidos_prestador(request):
-
-    if request.user.user_type != 'prestador':
-        return redirect('accounts:dashboard')
 
     pedidos = Pedido.objects.filter(
         servico__prestador=request.user,
@@ -227,21 +224,12 @@ def finalizar_servico(request, pedido_id):
         return redirect('accounts:dashboard')
 
     pedido.status = 'finalizado'
-    pedido.data_finalizado = timezone.now()
+    pedido.data_finalizacao = timezone.now()
     pedido.save()
 
     return redirect('accounts:dashboard_prestador')
-
-
-# =========================
-# SERVIÇOS EM ANDAMENTO
-# =========================
-
 @login_required
 def servicos_andamento(request):
-
-    if request.user.user_type != 'prestador':
-        return redirect('accounts:dashboard')
 
     pedidos = Pedido.objects.filter(
         servico__prestador=request.user,
@@ -255,86 +243,35 @@ def servicos_andamento(request):
     )
 
 
-# =========================
-# CALCULAR DISTÂNCIA
-# =========================
-
-def calcular_distancia(lat1, lon1, lat2, lon2):
-
-    R = 6371
-
-    dlat = math.radians(lat2 - lat1)
-    dlon = math.radians(lon2 - lon1)
-
-    a = (
-        math.sin(dlat / 2) ** 2 +
-        math.cos(math.radians(lat1)) *
-        math.cos(math.radians(lat2)) *
-        math.sin(dlon / 2) ** 2
-    )
-
-    return R * 2 * math.asin(math.sqrt(a))
-
-
-# =========================
-# MAPA DE PRESTADORES
-# =========================
-
 @login_required
 def buscar_prestadores(request):
-
     return render(request, 'busca/mapa_prestadores.html')
 
 
-# =========================
-# API PRESTADORES PRÓXIMOS
-# =========================
-
 @login_required
 def api_prestadores_proximos(request):
+    return JsonResponse({
+        "prestadores": []
+    })
+def lista_servicos(request):
 
-    try:
-        lat_cliente = float(request.GET.get('lat'))
-        lng_cliente = float(request.GET.get('lng'))
-        raio_km = float(request.GET.get('raio', 5))
-    except (TypeError, ValueError):
-        return JsonResponse({'erro': 'Parâmetros inválidos.'}, status=400)
+    servicos = Service.objects.filter(ativo=True)
 
-    prestadores = PrestadorProfile.objects.filter(
-        ativo=True,
-        latitude__isnull=False,
-        longitude__isnull=False
-    ).select_related('usuario')
+    return render(
+        request,
+        'services/lista_servicos.html',
+        {'servicos': servicos}
+    )
 
-    resultado = []
+@login_required
+def catalogo_prestador(request):
 
-    for p in prestadores:
+    servicos = Service.objects.filter(
+        prestador=request.user
+    )
 
-        distancia = calcular_distancia(
-            lat_cliente,
-            lng_cliente,
-            p.latitude,
-            p.longitude
-        )
-
-        if distancia <= raio_km:
-
-            resultado.append({
-                'id': p.id,
-                'nome': p.nome_empresa,
-                'categoria': p.categoria,
-                'cidade': p.cidade,
-                'descricao': (
-                    p.descricao[:100] + '...'
-                    if len(p.descricao) > 100
-                    else p.descricao
-                ),
-                'distancia': round(distancia, 2),
-                'lat': p.latitude,
-                'lng': p.longitude,
-                'foto': p.foto.url if p.foto else None,
-            })
-
-    resultado.sort(key=lambda x: x['distancia'])
-
-    return JsonResponse({'prestadores': resultado})
+    return render(
+        request,
+        'services/catalogo_prestador.html',
+        {'servicos': servicos}
+    )
