@@ -4,6 +4,10 @@ from django.conf import settings
 User = settings.AUTH_USER_MODEL
 
 
+# =========================
+# SERVIÇOS DO CATÁLOGO
+# =========================
+
 class Service(models.Model):
 
     prestador = models.ForeignKey(
@@ -12,15 +16,42 @@ class Service(models.Model):
         related_name='servicos'
     )
 
-    nome = models.CharField(max_length=200)
-    descricao = models.TextField()
-    categoria = models.CharField(max_length=100)
-    preco = models.DecimalField(max_digits=8, decimal_places=2)
+    nome = models.CharField(
+        max_length=200
+    )
 
-    criado_em = models.DateTimeField(auto_now_add=True)
+    descricao = models.TextField()
+
+    categoria = models.CharField(
+        max_length=100
+    )
+
+    preco = models.DecimalField(
+        max_digits=8,
+        decimal_places=2
+    )
+
+    foto = models.ImageField(
+        upload_to='servicos/',
+        null=True,
+        blank=True
+    )
+
+    ativo = models.BooleanField(
+        default=True
+    )
+
+    criado_em = models.DateTimeField(
+        auto_now_add=True
+    )
 
     def __str__(self):
-        return self.nome
+        return f"{self.nome} - {self.prestador}"
+
+
+# =========================
+# PEDIDOS DOS CLIENTES
+# =========================
 
 class Pedido(models.Model):
 
@@ -50,7 +81,30 @@ class Pedido(models.Model):
         default='pendente'
     )
 
-    criado_em = models.DateTimeField(auto_now_add=True)
+    criado_em = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    data_inicio = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    data_finalizacao = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    observacoes = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    endereco = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return f"{self.cliente} → {self.servico}"
