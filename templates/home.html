@@ -15,10 +15,15 @@
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 
 <main>
-    <div class="d-flex justify-content-center align-items-center vh-100 p-3">
+    <div class="quadrado-bg"></div>
+    <div class="circulo-bg"></div>
+    <img src="{% static 'img/logo_chamo-removebg-preview.png' %}" class="logo">
+    <div class="d-flex justify-content-end align-items-center vh-100 p-3">
         <div class="login-card">
+            <p class="text-center fs-4">Conectando quem precisa com quem sabe fazer!</p>
             <h2 class="fw-bold text-center mb-4">Login</h2>
-            <form action="">
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
                 <div class="input-group mb-3">
                     <span class="input-group-text"> <i class="bi bi-person-fill"> </i></span>
                     <input type="text" class="form-control" placeholder="Email">
@@ -33,13 +38,16 @@
                         <input type="checkbox" class="form-check-input" id="remember">
                         <label  class="form-check-label">Lembrar-me</label>
                     </div>
-                    <a href="" class="text-white small text-decoration-none ms-4">Esqueceu a senha?</a>
+                    <a href="#" class="text-white small text-decoration-none ms-4">
+                        Esqueceu a senha?
+                    </a>
                 </div>
 
-                <button class="btn btn-ligth w-100 text-dark fw-semibold">Entrar</button>
+                <button class="btn btn-light w-100 text-dark fw-semibold">Entrar</button>
+                <p> <a href="{% url 'accounts:register' %}" class="text-white fw-semibold text-decoration-none">
 
-                <p class="cadastro text-center"> 
-                    <a href="" class="text-white fw-semibold text-decoration-none">Não tem uma conta?</a>
+                    Não tem uma conta?
+                    </a>
                 </p>
 
             </form>

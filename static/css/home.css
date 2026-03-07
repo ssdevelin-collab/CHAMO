@@ -1,8 +1,31 @@
-body{
-    background-image: url("../img/fundo_laranja.jpg");
+html, body{
+    color: #ff7a00;
+    height:100%;
+    margin:0;
+    background-image: url("../img/fundo_chamo-removebg-preview.png");
     font-family: poppins, sans-serif;
-    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-size: 50% 50%;
+    
 }
+
+.circulo-bg{
+    position: fixed;
+    width: 1500px;
+    height: 1500px;
+    background-color: #ff7a00;
+    border-radius: 50%;
+
+    left: -590px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    z-index: 0;
+}
+
+
+
 
 .login-card{
     max-width: 420px;
@@ -34,6 +57,27 @@ body{
     padding: 0.7rem;
 }
 
-.cadastro{
-    
+.logo{
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    width: 120px;
+}
+
+.quadrado-bg{
+    position: fixed;
+    width: 1500px;
+    height: 1500px;
+    background-color: #ffffff;
+    border-radius: 50%;
+
+    left: -590px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    z-index: -1;
+}
+
+.login-card p a{
+    color: #ff7a00;
 }

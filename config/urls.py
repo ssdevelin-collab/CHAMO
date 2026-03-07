@@ -11,7 +11,7 @@ urlpatterns = [
     ), name='home'),
 
     # rotas do sistema de login do django
-    path('', include('django.contrib.auth.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
 
     # rotas do seu app accounts (register, dashboard etc)
     path('', include('accounts.urls')),
