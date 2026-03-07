@@ -1,17 +1,16 @@
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 SECRET_KEY = 'django-insecure-eb=ea2wu@p#v*r12k9%v^*7&wwnrtd+it&-odp-d8uou!k44jf'
-
 
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
 
+# APPLICATIONS
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -20,9 +19,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # apps do projeto
     'accounts',
     'services',
 ]
+
+
+# MIDDLEWARE
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -34,13 +38,21 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'config.urls'
+
+
+# TEMPLATES
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+
+        # pasta templates global
+        'DIRS': [BASE_DIR / 'templates'],
+
         'APP_DIRS': True,
+
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -51,9 +63,11 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
+# DATABASE
 
 DATABASES = {
     'default': {
@@ -63,6 +77,7 @@ DATABASES = {
 }
 
 
+# PASSWORD VALIDATION
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -80,6 +95,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# INTERNATIONALIZATION
 
 LANGUAGE_CODE = 'pt-br'
 
@@ -90,19 +106,33 @@ USE_I18N = True
 USE_TZ = True
 
 
+# STATIC FILES
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+
+
+# MEDIA FILES
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# DEFAULT PRIMARY KEY
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# CUSTOM USER MODEL
 
 AUTH_USER_MODEL = 'accounts.User'
 
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/login/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-LOGIN_REDIRECT_URL = '/dashboard/'
+
+# AUTHENTICATION
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'
 LOGOUT_REDIRECT_URL = 'accounts:home'
-LOGIN_REDIRECT_URL = '/servicos/'
-

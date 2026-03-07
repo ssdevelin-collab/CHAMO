@@ -2,12 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
+from django.utils import timezone
 import math
 
-from .forms import ServiceForm, PedidoForm
+from .forms import ServiceForm
 from .models import Service, Pedido
 from accounts.models import PrestadorProfile
 
+
+# =========================
+# CRIAR SERVIÇO
+# =========================
 
 @login_required
 def criar_servico(request):
@@ -31,6 +36,10 @@ def criar_servico(request):
     return render(request, 'services/criar_servico.html', {'form': form})
 
 
+# =========================
+# EDITAR SERVIÇO
+# =========================
+
 @login_required
 def editar_servico(request, id):
 
@@ -49,6 +58,10 @@ def editar_servico(request, id):
     return render(request, 'services/criar_servico.html', {'form': form})
 
 
+# =========================
+# EXCLUIR SERVIÇO
+# =========================
+
 @login_required
 def excluir_servico(request, id):
 
@@ -57,6 +70,10 @@ def excluir_servico(request, id):
 
     return redirect('accounts:dashboard_prestador')
 
+
+# =========================
+# LISTAR SERVIÇOS
+# =========================
 
 def lista_servicos(request):
 
@@ -83,6 +100,10 @@ def lista_servicos(request):
     )
 
 
+# =========================
+# CLIENTE CONTRATA SERVIÇO
+# =========================
+
 @login_required
 def contratar_servico(request, servico_id):
 
@@ -93,11 +114,16 @@ def contratar_servico(request, servico_id):
 
     Pedido.objects.create(
         cliente=request.user,
-        servico=servico
+        servico=servico,
+        status='pendente'
     )
 
     return redirect('services:meus_pedidos')
 
+
+# =========================
+# MEUS PEDIDOS (CLIENTE)
+# =========================
 
 @login_required
 def meus_pedidos(request):
@@ -110,6 +136,10 @@ def meus_pedidos(request):
         {'pedidos': pedidos}
     )
 
+
+# =========================
+# PEDIDOS DO PRESTADOR
+# =========================
 
 @login_required
 def pedidos_prestador(request):
@@ -129,6 +159,10 @@ def pedidos_prestador(request):
     )
 
 
+# =========================
+# ACEITAR PEDIDO
+# =========================
+
 @login_required
 def aceitar_pedido(request, pedido_id):
 
@@ -140,8 +174,12 @@ def aceitar_pedido(request, pedido_id):
     pedido.status = 'aceito'
     pedido.save()
 
-    return redirect('services:pedidos_prestador')
+    return redirect('accounts:dashboard_prestador')
 
+
+# =========================
+# RECUSAR PEDIDO
+# =========================
 
 @login_required
 def recusar_pedido(request, pedido_id):
@@ -154,8 +192,12 @@ def recusar_pedido(request, pedido_id):
     pedido.status = 'recusado'
     pedido.save()
 
-    return redirect('services:pedidos_prestador')
+    return redirect('accounts:dashboard_prestador')
 
+
+# =========================
+# INICIAR SERVIÇO
+# =========================
 
 @login_required
 def iniciar_servico(request, pedido_id):
@@ -166,10 +208,15 @@ def iniciar_servico(request, pedido_id):
         return redirect('accounts:dashboard')
 
     pedido.status = 'em_andamento'
+    pedido.data_inicio = timezone.now()
     pedido.save()
 
-    return redirect('services:servicos_andamento')
+    return redirect('accounts:dashboard_prestador')
 
+
+# =========================
+# FINALIZAR SERVIÇO
+# =========================
 
 @login_required
 def finalizar_servico(request, pedido_id):
@@ -180,10 +227,15 @@ def finalizar_servico(request, pedido_id):
         return redirect('accounts:dashboard')
 
     pedido.status = 'finalizado'
+    pedido.data_finalizado = timezone.now()
     pedido.save()
 
-    return redirect('services:servicos_andamento')
+    return redirect('accounts:dashboard_prestador')
 
+
+# =========================
+# SERVIÇOS EM ANDAMENTO
+# =========================
 
 @login_required
 def servicos_andamento(request):
@@ -193,7 +245,7 @@ def servicos_andamento(request):
 
     pedidos = Pedido.objects.filter(
         servico__prestador=request.user,
-        status__in=['aceito', 'em_andamento']
+        status='em_andamento'
     ).order_by('-criado_em')
 
     return render(
@@ -203,9 +255,14 @@ def servicos_andamento(request):
     )
 
 
+# =========================
+# CALCULAR DISTÂNCIA
+# =========================
+
 def calcular_distancia(lat1, lon1, lat2, lon2):
 
     R = 6371
+
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
 
@@ -219,11 +276,19 @@ def calcular_distancia(lat1, lon1, lat2, lon2):
     return R * 2 * math.asin(math.sqrt(a))
 
 
+# =========================
+# MAPA DE PRESTADORES
+# =========================
+
 @login_required
 def buscar_prestadores(request):
 
     return render(request, 'busca/mapa_prestadores.html')
 
+
+# =========================
+# API PRESTADORES PRÓXIMOS
+# =========================
 
 @login_required
 def api_prestadores_proximos(request):

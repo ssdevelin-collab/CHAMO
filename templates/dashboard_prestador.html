@@ -22,78 +22,99 @@
 
 <hr>
 
-<!-- ================= PEDIDOS PENDENTES ================= -->
-
 <h3>📥 Pedidos Pendentes</h3>
 
 {% for pedido in pedidos_pendentes %}
-    <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-        <strong>{{ pedido.servico.nome }}</strong><br>
-        Cliente: {{ pedido.cliente.username }}<br>
-        Status: {{ pedido.status }}
+<div style="border:1px solid #ccc; padding:10px; margin:10px;">
+    <strong>{{ pedido.servico.nome }}</strong><br>
+    Cliente: {{ pedido.cliente.username }}<br>
+    Status: {{ pedido.status }}
 
-        <br><br>
+    <br><br>
 
-        <a href="{% url 'services:aceitar_pedido' pedido.id %}">
-            ✅ Aceitar
-        </a>
+    <a href="{% url 'services:aceitar_pedido' pedido.id %}">
+        ✅ Aceitar
+    </a>
 
-        <a href="{% url 'services:recusar_pedido' pedido.id %}">
-            ❌ Recusar
-        </a>
-    </div>
+    <a href="{% url 'services:recusar_pedido' pedido.id %}">
+        ❌ Recusar
+    </a>
+</div>
 {% empty %}
 <p>Nenhum pedido pendente.</p>
 {% endfor %}
 
 <hr>
 
-<!-- ================= EM ANDAMENTO ================= -->
-
 <h3>🚧 Serviços Aceitos</h3>
 
 {% for pedido in pedidos_andamento %}
-    <div style="border:1px solid #4CAF50; padding:10px; margin:10px;">
-        <strong>{{ pedido.servico.nome }}</strong><br>
-        Cliente: {{ pedido.cliente.username }}<br>
-        Status: {{ pedido.status }}
+<div style="border:1px solid #4CAF50; padding:10px; margin:10px;">
+    <strong>{{ pedido.servico.nome }}</strong><br>
+    Cliente: {{ pedido.cliente.username }}<br>
+    Status: {{ pedido.status }}
 
-        <br><br>
+    <br><br>
 
-        {% if pedido.status == 'aceito' %}
-            <a href="{% url 'services:iniciar_servico' pedido.id %}">
-                ▶️ Iniciar Serviço
-            </a>
-        {% endif %}
+    {% if pedido.status == 'aceito' %}
+    <a href="{% url 'services:iniciar_servico' pedido.id %}">
+        ▶️ Iniciar Serviço
+    </a>
+    {% endif %}
 
-        {% if pedido.status == 'em_andamento' %}
-            <a href="{% url 'services:finalizar_servico' pedido.id %}">
-                ✅ Finalizar Serviço
-            </a>
-        {% endif %}
-    </div>
+    {% if pedido.status == 'em_andamento' %}
+    <a href="{% url 'services:finalizar_servico' pedido.id %}">
+        ✅ Finalizar Serviço
+    </a>
+    {% endif %}
+</div>
 {% empty %}
 <p>Nenhum serviço em andamento.</p>
 {% endfor %}
 
 <hr>
 
-<!-- ================= MEUS SERVIÇOS ================= -->
+<h3>📊 Acompanhamento</h3>
+
+{% for pedido in pedidos_andamento %}
+<div style="border:1px solid #2196F3; padding:10px; margin:10px;">
+
+<strong>{{ pedido.servico.nome }}</strong><br>
+Cliente: {{ pedido.cliente.username }}<br>
+
+{% if pedido.data_inicio %}
+Iniciado em: {{ pedido.data_inicio }}
+{% endif %}
+
+<br>
+
+{% if pedido.status == 'em_andamento' %}
+<a href="{% url 'services:finalizar_servico' pedido.id %}">
+✅ Finalizar Serviço
+</a>
+{% endif %}
+
+</div>
+{% empty %}
+<p>Nenhum serviço em acompanhamento.</p>
+{% endfor %}
+
+<hr>
 
 <h3>🛠 Meus Serviços</h3>
 
 {% for servico in servicos %}
-    <p>
-        <strong>{{ servico.nome }}</strong>
+<p>
+<strong>{{ servico.nome }}</strong>
 
-        <a href="{% url 'services:editar_servico' servico.id %}">
-            Editar
-        </a>
+<a href="{% url 'services:editar_servico' servico.id %}">
+Editar
+</a>
 
-        <a href="{% url 'services:excluir_servico' servico.id %}">
-            Excluir
-        </a>
-    </p>
+<a href="{% url 'services:excluir_servico' servico.id %}">
+Excluir
+</a>
+</p>
 {% empty %}
 <p>Você ainda não cadastrou serviços.</p>
 {% endfor %}
