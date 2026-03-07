@@ -1,0 +1,39 @@
+body{
+    background-image: url("../img/fundo_laranja.jpg");
+    font-family: poppins, sans-serif;
+    background-size: cover;
+}
+
+.login-card{
+    max-width: 420px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 22px;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(7px);
+}
+
+.form-control{
+    background-color: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .25);
+    color: white;
+}
+
+.form-control::placeholder{
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.form-control:focus{
+    background: rgba(0, 0, 0, 0.12 );
+    border-color: 1px solid rgba(255, 255, 255, .25);
+}
+
+.btn{
+    border-radius: 999px;
+    padding: 0.7rem;
+}
+
+.cadastro{
+    
+}
