@@ -1,77 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Encontrar Serviços</title>
-</head>
-<body>
-
-<h1>Encontrar Serviços</h1>
-
-<form method="GET">
-
-    <input
-        type="text"
-        name="busca"
-        placeholder="Qual serviço você procura?"
-        value="{{ request.GET.busca }}"
-    >
-
-    <input
-        type="text"
-        name="cidade"
-        placeholder="Cidade"
-        value="{{ request.GET.cidade }}"
-    >
-
-    <button type="submit">
-        Buscar
-    </button>
-
-</form>
-
-<hr>
+<h2>Serviços disponíveis</h2>
 
 {% for servico in servicos %}
 
-<div style="border:1px solid #ccc; padding:15px; margin:15px; border-radius:8px;">
+<div class="card" style="border:1px solid #ddd;padding:15px;margin-bottom:10px;">
 
-    <h3>{{ servico.nome }}</h3>
+{% if servico.foto %}
+<img src="{{ servico.foto.url }}" width="200">
+{% endif %}
 
-    <p>{{ servico.descricao }}</p>
+<h3>{{ servico.nome }}</h3>
 
-    <strong>Categoria:</strong>
-    {{ servico.categoria }}
+<p>{{ servico.descricao }}</p>
 
-    <br>
+<strong>R$ {{ servico.preco }}</strong>
 
-    <strong>Preço:</strong>
-    R$ {{ servico.preco }}
+<br><br>
 
-    <br>
-
-    <strong>Prestador:</strong>
-    {{ servico.prestador.username }}
-
-    <br>
-
-    <strong>Cidade:</strong>
-    {{ servico.prestador.city }}
-
-    <br><br>
-
-    {% if user.user_type == 'cliente' %}
-        <a href="{% url 'services:contratar_servico' servico.id %}">
-            🚀 Contratar Serviço
-        </a>
-    {% endif %}
+<a href="{% url 'services:contratar_servico' servico.id %}">
+<button>Contratar</button>
+</a>
 
 </div>
 
 {% empty %}
 
-<p>Nenhum serviço encontrado.</p>
+<p>Nenhum serviço disponível.</p>
 
 {% endfor %}
-
-</body>
-</html>

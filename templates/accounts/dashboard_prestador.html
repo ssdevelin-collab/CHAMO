@@ -5,13 +5,119 @@
 <h2>Área do Prestador 🔧</h2>
 
 <a href="{% url 'services:criar_servico' %}">
-    ➕ Criar Serviço
+<button>➕ Novo Serviço</button>
 </a>
+
+<hr>
+
+<h2>🛠 Meu Catálogo</h2>
+
+{% for servico in servicos %}
+
+<div style="border:1px solid #ccc;padding:15px;margin-bottom:10px">
+
+{% if servico.foto %}
+<img src="{{ servico.foto.url }}" width="120">
+{% endif %}
+
+<h3>{{ servico.nome }}</h3>
+
+<p>{{ servico.descricao }}</p>
+
+<strong>R$ {{ servico.preco }}</strong>
 
 <br><br>
 
-<a href="{% url 'services:pedidos_prestador' %}">
-    📋 Ver Pedidos Recebidos
+<a href="{% url 'services:editar_servico' servico.id %}">
+<button>Editar</button>
 </a>
+
+<a href="{% url 'services:excluir_servico' servico.id %}">
+<button>Excluir</button>
+</a>
+
+</div>
+
+{% empty %}
+<p>Você ainda não cadastrou serviços.</p>
+{% endfor %}
+
+<hr>
+
+<h2>📥 Pedidos Pendentes</h2>
+
+{% for pedido in pedidos_pendentes %}
+
+<div style="border:1px solid #ccc; padding:10px; margin:10px;">
+
+<strong>{{ pedido.servico.nome }}</strong><br>
+Cliente: {{ pedido.cliente.username }}<br>
+Status: {{ pedido.status }}
+
+<br><br>
+
+<a href="{% url 'services:aceitar_pedido' pedido.id %}">
+<button>✅ Aceitar</button>
+</a>
+
+<a href="{% url 'services:recusar_pedido' pedido.id %}">
+<button>❌ Recusar</button>
+</a>
+
+</div>
+
+{% empty %}
+<p>Nenhum pedido pendente.</p>
+{% endfor %}
+
+<hr>
+
+<h2>🚧 Serviços em Andamento</h2>
+
+{% for pedido in pedidos_andamento %}
+
+<div style="border:1px solid #4CAF50; padding:10px; margin:10px;">
+
+<strong>{{ pedido.servico.nome }}</strong><br>
+Cliente: {{ pedido.cliente.username }}<br>
+Status: {{ pedido.status }}
+
+<br><br>
+
+{% if pedido.status == 'aceito' %}
+<a href="{% url 'services:iniciar_servico' pedido.id %}">
+<button>▶️ Iniciar Serviço</button>
+</a>
+{% endif %}
+
+{% if pedido.status == 'em_andamento' %}
+<a href="{% url 'services:finalizar_servico' pedido.id %}">
+<button>✅ Finalizar Serviço</button>
+</a>
+{% endif %}
+
+</div>
+
+{% empty %}
+<p>Nenhum serviço em andamento.</p>
+{% endfor %}
+
+<hr>
+
+<h2>✅ Serviços Finalizados</h2>
+
+{% for pedido in pedidos_finalizados %}
+
+<div style="border:1px solid #2196F3; padding:10px; margin:10px;">
+
+<strong>{{ pedido.servico.nome }}</strong><br>
+Cliente: {{ pedido.cliente.username }}<br>
+Finalizado.
+
+</div>
+
+{% empty %}
+<p>Nenhum serviço finalizado ainda.</p>
+{% endfor %}
 
 {% endblock %}

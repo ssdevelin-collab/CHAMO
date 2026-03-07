@@ -5,9 +5,29 @@ app_name = 'services'
 
 urlpatterns = [
 
-    path('', views.lista_servicos, name='lista_servicos'),
+    path(
+        '',
+        views.lista_servicos,
+        name='lista_servicos'
+    ),
 
-    path('criar/', views.criar_servico, name='criar_servico'),
+    path(
+        'criar/',
+        views.criar_servico,
+        name='criar_servico'
+    ),
+
+    path(
+        'editar/<int:servico_id>/',
+        views.editar_servico,
+        name='editar_servico'
+    ),
+
+    path(
+        'excluir/<int:servico_id>/',
+        views.excluir_servico,
+        name='excluir_servico'
+    ),
 
     path(
         'contratar/<int:servico_id>/',
@@ -58,12 +78,6 @@ urlpatterns = [
     ),
 
     path(
-        'servicos-andamento/',
-        views.servicos_andamento,
-        name='servicos_andamento'
-    ),
-
-    path(
         'mapa/',
         views.buscar_prestadores,
         name='buscar_prestadores'
@@ -74,4 +88,11 @@ urlpatterns = [
         views.api_prestadores_proximos,
         name='api_prestadores'
     ),
+
+    path(
+        'meu-catalogo/',
+        views.catalogo_prestador,
+        name='catalogo_prestador'
+    ),
+
 ]
