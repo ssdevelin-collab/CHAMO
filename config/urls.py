@@ -5,15 +5,15 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # HOME = tela inicial/login customizado
+    # tela inicial (login)
     path('', auth_views.LoginView.as_view(
         template_name='home.html'
     ), name='home'),
 
-    # rotas do sistema de login do django
+    # sistema de autenticação do django
     path('accounts/', include('django.contrib.auth.urls')),
 
-    # rotas do seu app accounts (register, dashboard etc)
+    # rotas do seu app
     path('', include('accounts.urls')),
 
     # serviços

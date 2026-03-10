@@ -16,15 +16,11 @@ class Service(models.Model):
         related_name='servicos'
     )
 
-    nome = models.CharField(
-        max_length=200
-    )
+    nome = models.CharField(max_length=200)
 
     descricao = models.TextField()
 
-    categoria = models.CharField(
-        max_length=100
-    )
+    categoria = models.CharField(max_length=100)
 
     preco = models.DecimalField(
         max_digits=8,
@@ -37,13 +33,9 @@ class Service(models.Model):
         blank=True
     )
 
-    ativo = models.BooleanField(
-        default=True
-    )
+    ativo = models.BooleanField(default=True)
 
-    criado_em = models.DateTimeField(
-        auto_now_add=True
-    )
+    criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.nome} - {self.prestador}"
@@ -81,9 +73,7 @@ class Pedido(models.Model):
         default='pendente'
     )
 
-    criado_em = models.DateTimeField(
-        auto_now_add=True
-    )
+    criado_em = models.DateTimeField(auto_now_add=True)
 
     data_inicio = models.DateTimeField(
         null=True,
@@ -108,3 +98,58 @@ class Pedido(models.Model):
 
     def __str__(self):
         return f"{self.cliente} → {self.servico}"
+
+
+# =========================
+# TIPOS DE PAGAMENTO
+# =========================
+
+class TipoPagamento(models.Model):
+
+    nome = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.nome
+
+
+# =========================
+# PAGAMENTOS
+# =========================
+
+class Pagamento(models.Model):
+
+    cliente = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    pedido = models.ForeignKey(
+        Pedido,
+        on_delete=models.CASCADE
+    )
+
+    tipo = models.ForeignKey(
+        TipoPagamento,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    valor = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pendente', 'Pendente'),
+            ('pago', 'Pago'),
+            ('cancelado', 'Cancelado')
+        ],
+        default='pendente'
+    )
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.pedido} - R$ {self.valor}"

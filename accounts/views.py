@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
-
 from .forms import RegisterForm, PrestadorProfileForm
 from .models import PrestadorProfile
 from services.models import Service, Pedido
 from services.forms import ServiceForm
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout
+from services.models import Pagamento
 
 
 # ===============================
@@ -204,3 +206,37 @@ def excluir_servico(request, servico_id):
     servico.delete()
 
     return redirect('accounts:dashboard_prestador')
+
+@login_required
+def perfil_usuario(request):
+    user = request.user
+
+    context = {
+        'user': user
+    }
+
+    return render(request, 'accounts/perfil.html', context)
+
+
+@login_required
+def excluir_conta(request):
+    user = request.user
+    user.delete()
+    return redirect('login')
+@login_required
+def perfil_usuario(request):
+
+    pagamentos = Pagamento.objects.filter(
+        cliente=request.user
+    ).order_by('-criado_em')
+
+    context = {
+        'user': request.user,
+        'pagamentos': pagamentos
+    }
+
+    return render(
+        request,
+        'accounts/perfil.html',
+        context
+    )

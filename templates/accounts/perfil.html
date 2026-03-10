@@ -1,0 +1,44 @@
+<h3>💳 Pagamentos</h3>
+
+{% if pagamentos %}
+
+<table border="1" cellpadding="8">
+
+<tr>
+<th>Serviço</th>
+<th>Valor</th>
+<th>Status</th>
+<th>Data</th>
+</tr>
+
+{% for pagamento in pagamentos %}
+
+<tr>
+
+<td>
+{{ pagamento.pedido.servico.nome }}
+</td>
+
+<td>
+R$ {{ pagamento.valor }}
+</td>
+
+<td>
+{{ pagamento.status }}
+</td>
+
+<td>
+{{ pagamento.criado_em }}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>Nenhum pagamento encontrado.</p>
+
+{% endif %}

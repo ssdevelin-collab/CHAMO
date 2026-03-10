@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>👤 Meu Perfil</h2>
+
+<div style="border:1px solid #ccc; padding:20px; width:400px">
+
+<p><strong>Nome completo:</strong> {{ user.get_full_name }}</p>
+
+<p><strong>Usuário:</strong> {{ user.username }}</p>
+
+<p><strong>Email:</strong> {{ user.email }}</p>
+
+<p><strong>CPF:</strong> {{ user.cpf }}</p>
+
+</div>
+
+<br>
+
+<h3>⚙️ Configurações</h3>
+
+<a href="{% url 'password_change' %}">
+<button>🔑 Alterar senha</button>
+</a>
+
+<a href="{% url 'logout' %}">
+<button>🚪 Sair</button>
+</a>
+
+<a href="{% url 'accounts:excluir_conta' %}">
+<button style="background:red;color:white">🗑 Excluir conta</button>
+</a>
+
+<hr>
+
+<h3>💳 Pagamentos</h3>
+
+<p>Aqui você poderá visualizar histórico de pagamentos futuramente.</p>
+
+{% endblock %}

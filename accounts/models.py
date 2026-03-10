@@ -2,6 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+# =========================
+# USUÁRIO CUSTOMIZADO
+# =========================
+
 class User(AbstractUser):
 
     USER_TYPES = (
@@ -15,18 +19,50 @@ class User(AbstractUser):
         default='cliente'
     )
 
-    full_name = models.CharField(max_length=255, null=True, blank=True)
-    cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
-    phone = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    full_name = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
 
-    birth_date = models.DateField(null=True, blank=True)
+    cpf = models.CharField(
+        max_length=14,
+        unique=True,
+        null=True,
+        blank=True
+    )
 
-    address = models.CharField(max_length=255, null=True, blank=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
+    phone = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    birth_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    address = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
+    city = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return self.username
 
+
+# =========================
+# PERFIL DO PRESTADOR
+# =========================
 
 class PrestadorProfile(models.Model):
 
@@ -52,7 +88,7 @@ class PrestadorProfile(models.Model):
 
     ativo = models.BooleanField(default=True)
 
-    # localização (para mapa ou busca por proximidade)
+    # localização (para busca por proximidade)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
@@ -61,6 +97,10 @@ class PrestadorProfile(models.Model):
     def __str__(self):
         return self.nome_empresa
 
+
+# =========================
+# AVALIAÇÃO DE PRESTADORES
+# =========================
 
 class Avaliacao(models.Model):
 
