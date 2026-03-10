@@ -240,3 +240,6 @@ def perfil_usuario(request):
         'accounts/perfil.html',
         context
     )
+@login_required
+def perfil_usuario(request):
+    return render(request, 'accounts/perfil.html')
