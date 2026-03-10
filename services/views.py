@@ -4,12 +4,22 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.utils import timezone
 import math
-
 from .forms import ServiceForm
 from .models import Service, Pedido
 from accounts.models import PrestadorProfile
 
 
+# =========================
+# CALCULAR DISTÂNCIA DO CLIENTE PRESTADOR
+# =========================
+
+def calcular_distancia(lat1, lng1, lat2, lng2):
+    """Fórmula de Haversine — retorna distância em km entre dois pontos."""
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng/2)**2
+    return R * 2 * math.asin(math.sqrt(a))
 # =========================
 # CRIAR SERVIÇO
 # =========================
@@ -228,6 +238,8 @@ def finalizar_servico(request, pedido_id):
     pedido.save()
 
     return redirect('accounts:dashboard_prestador')
+
+
 @login_required
 def servicos_andamento(request):
 
@@ -250,18 +262,43 @@ def buscar_prestadores(request):
 
 @login_required
 def api_prestadores_proximos(request):
-    return JsonResponse({
-        "prestadores": []
-    })
-def lista_servicos(request):
+    try:
+        lat = float(request.GET.get('lat'))
+        lng = float(request.GET.get('lng'))
+        raio = float(request.GET.get('raio', 5))
+    except (TypeError, ValueError):
+        return JsonResponse({'erro': 'Parâmetros inválidos.'}, status=400)
 
-    servicos = Service.objects.filter(ativo=True)
+    # Filtro inicial por bounding box (otimização — evita calcular distância de todos)
+    grau_lat = raio / 111.0
+    grau_lng = raio / (111.0 * math.cos(math.radians(lat)))
 
-    return render(
-        request,
-        'services/lista_servicos.html',
-        {'servicos': servicos}
+    prestadores = PrestadorProfile.objects.filter(
+        ativo=True,
+        latitude__isnull=False,
+        longitude__isnull=False,
+        latitude__range=(lat - grau_lat, lat + grau_lat),
+        longitude__range=(lng - grau_lng, lng + grau_lng),
     )
+
+    # Calcula distância real com Haversine e filtra pelo raio exato
+    resultado = []
+    for p in prestadores:
+        distancia = calcular_distancia(lat, lng, p.latitude, p.longitude)
+        if distancia <= raio:
+            resultado.append({
+                'nome': p.nome_empresa,
+                'categoria': p.categoria,
+                'descricao': p.descricao,
+                'cidade': p.cidade,
+                'lat': p.latitude,
+                'lng': p.longitude,
+                'distancia': round(distancia, 1),
+            })
+
+    resultado.sort(key=lambda x: x['distancia'])
+
+    return JsonResponse({'prestadores': resultado})
 
 @login_required
 def catalogo_prestador(request):

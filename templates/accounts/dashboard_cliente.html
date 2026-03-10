@@ -3,3 +3,302 @@
 <a href="{% url 'services:lista_servicos' %}">
     Ver Serviços Disponíveis
 </a>
+
+<hr>
+
+<h4 class="mb-3">🗺️ Prestadores próximos de você</h4>
+
+<div class="row g-3">
+
+    <!-- ===== PAINEL ESQUERDO ===== -->
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="card-title mb-3">🔍 Buscar prestadores</h5>
+
+                <label class="form-label fw-semibold">Seu endereço</label>
+                <div class="input-group mb-1">
+                    <input type="text" id="campoBusca" class="form-control"
+                           placeholder="Ex: Rua das Flores, 123, Salvador">
+                    <button class="btn btn-success" id="btnBuscarEndereco" type="button">
+                        Buscar
+                    </button>
+                </div>
+                <small class="text-muted d-block mb-3">
+                    💡 Ou clique em qualquer ponto do mapa para definir sua origem
+                </small>
+
+                <label class="form-label fw-semibold">
+                    Raio de busca: <span id="raioValor" class="text-success">5 km</span>
+                </label>
+                <input type="range" class="form-range" id="raioSlider"
+                       min="1" max="50" step="1" value="5">
+
+                <button id="btnGeolocalizacao" class="btn btn-outline-success w-100 mt-3 btn-sm">
+                    📍 Usar minha localização atual
+                </button>
+            </div>
+        </div>
+
+        <div id="listaPrestadores">
+            <p class="text-muted text-center mt-2">
+                <small>Pesquise um endereço ou clique no mapa para começar.</small>
+            </p>
+        </div>
+    </div>
+
+    <!-- ===== MAPA ===== -->
+    <div class="col-md-8">
+        <div id="mapa" style="height: 600px; border-radius: 12px; overflow: hidden;"></div>
+    </div>
+
+</div>
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<script>
+// =============================================
+// 1. INICIALIZA O MAPA — centralizado em Salvador
+// =============================================
+const mapa = L.map("mapa", { zoomControl: true }).setView([-12.9714, -38.5014], 13);
+
+// Força o Leaflet a recalcular o tamanho após o DOM carregar
+setTimeout(() => { mapa.invalidateSize(); }, 200);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(mapa);
+
+let marcadorCliente = null;
+let circuloRaio = null;
+let marcadoresPrestadores = [];
+
+
+// =============================================
+// 2. SLIDER DE RAIO
+// =============================================
+const slider = document.getElementById('raioSlider');
+const raioValor = document.getElementById('raioValor');
+
+slider.addEventListener('input', () => {
+    raioValor.textContent = `${slider.value} km`;
+    if (circuloRaio) circuloRaio.setRadius(slider.value * 1000);
+});
+
+slider.addEventListener('change', () => {
+    if (marcadorCliente) {
+        const pos = marcadorCliente.getLatLng();
+        buscarPrestadores(pos.lat, pos.lng);
+    }
+});
+
+
+// =============================================
+// 3. OPÇÃO A — Buscar por endereço digitado
+// =============================================
+document.getElementById('btnBuscarEndereco').addEventListener('click', geocodificarEndereco);
+document.getElementById('campoBusca').addEventListener('keydown', e => {
+    if (e.key === 'Enter') geocodificarEndereco();
+});
+
+function geocodificarEndereco() {
+    const endereco = document.getElementById('campoBusca').value.trim();
+    if (!endereco) return;
+
+    // Usa o Nominatim (OpenStreetMap) — mesmo serviço do backend, agora no front
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(endereco)}&format=json&limit=1&countrycodes=br`;
+
+    fetch(url, { headers: { 'Accept-Language': 'pt-BR' } })
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                alert('Endereço não encontrado. Tente ser mais específico, incluindo a cidade.');
+                return;
+            }
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            definirOrigem(lat, lng, `📍 ${data[0].display_name.split(',').slice(0,3).join(',')}`);
+        })
+        .catch(() => alert('Erro ao buscar endereço. Verifique sua conexão.'));
+}
+
+
+// =============================================
+// 4. OPÇÃO B — Clicar no mapa para definir origem
+// =============================================
+mapa.on('click', function(e) {
+    definirOrigem(e.latlng.lat, e.latlng.lng, '📍 Localização selecionada no mapa');
+});
+
+
+// =============================================
+// 5. OPÇÃO C — Geolocalização do navegador (opcional)
+// =============================================
+document.getElementById('btnGeolocalizacao').addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        alert('Seu navegador não suporta geolocalização.');
+        return;
+    }
+    const btn = document.getElementById('btnGeolocalizacao');
+    btn.textContent = 'Obtendo localização...';
+    btn.disabled = true;
+
+    const timeoutId = setTimeout(() => {
+        btn.textContent = '📍 Usar minha localização atual';
+        btn.disabled = false;
+        alert('Tempo esgotado. Tente digitar o endereço ou clicar no mapa.');
+    }, 8000);
+
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            clearTimeout(timeoutId);
+            btn.textContent = '📍 Usar minha localização atual';
+            btn.disabled = false;
+            definirOrigem(pos.coords.latitude, pos.coords.longitude, '📍 Você está aqui');
+        },
+        erro => {
+            clearTimeout(timeoutId);
+            btn.textContent = '📍 Usar minha localização atual';
+            btn.disabled = false;
+            const msgs = { 1: 'Permissão negada.', 2: 'Localização indisponível.', 3: 'Tempo esgotado.' };
+            alert(`Não foi possível obter sua localização: ${msgs[erro.code] || ''}\n\nTente digitar o endereço ou clicar no mapa.`);
+        },
+        { timeout: 7000, maximumAge: 60000 }
+    );
+});
+
+
+// =============================================
+// 6. DEFINE ORIGEM E DISPARA BUSCA
+// =============================================
+function definirOrigem(lat, lng, popupTexto) {
+    // Remove marcador anterior
+    if (marcadorCliente) mapa.removeLayer(marcadorCliente);
+    if (circuloRaio)     mapa.removeLayer(circuloRaio);
+
+    const iconeCliente = L.divIcon({
+        html: '<div style="background:#198754;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px rgba(0,0,0,.4)"></div>',
+        iconSize: [16, 16], iconAnchor: [8, 8], className: ''
+    });
+
+    marcadorCliente = L.marker([lat, lng], { icon: iconeCliente })
+        .addTo(mapa)
+        .bindPopup(popupTexto)
+        .openPopup();
+
+    circuloRaio = L.circle([lat, lng], {
+        radius: slider.value * 1000,
+        color: '#198754',
+        fillColor: '#198754',
+        fillOpacity: 0.08,
+        weight: 2,
+        dashArray: '6,4'
+    }).addTo(mapa);
+
+    mapa.fitBounds(circuloRaio.getBounds());
+    buscarPrestadores(lat, lng);
+}
+
+
+// =============================================
+// 7. BUSCA OS PRESTADORES VIA API DJANGO
+// =============================================
+function buscarPrestadores(lat, lng) {
+    const raio = slider.value;
+    document.getElementById('listaPrestadores').innerHTML = `
+        <div class="text-center text-muted mt-3">
+            <div class="spinner-border spinner-border-sm text-success me-1"></div>
+            Buscando prestadores...
+        </div>`;
+
+    fetch(`{% url 'services:api_prestadores' %}?lat=${lat}&lng=${lng}&raio=${raio}`)
+        .then(res => res.json())
+        .then(data => renderizarResultados(data.prestadores))
+        .catch(() => {
+            document.getElementById('listaPrestadores').innerHTML =
+                '<div class="alert alert-danger">Erro ao buscar prestadores.</div>';
+        });
+}
+
+
+// =============================================
+// 8. RENDERIZA MARCADORES E LISTA
+// =============================================
+function renderizarResultados(prestadores) {
+    marcadoresPrestadores.forEach(m => mapa.removeLayer(m));
+    marcadoresPrestadores = [];
+
+    const lista = document.getElementById('listaPrestadores');
+
+    if (prestadores.length === 0) {
+        lista.innerHTML = `
+            <div class="alert alert-warning text-center">
+                Nenhum prestador encontrado nesse raio.<br>
+                <small>Tente aumentar a distância!</small>
+            </div>`;
+        return;
+    }
+
+    lista.innerHTML = `<h6 class="text-muted mb-2">${prestadores.length} prestador(es) encontrado(s)</h6>`;
+
+    prestadores.forEach((p, i) => {
+        const icone = L.divIcon({
+            html: `<div style="background:#0d6efd;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,.3)">${i+1}</div>`,
+            iconSize: [28, 28], iconAnchor: [14, 14], className: ''
+        });
+
+        const marcador = L.marker([p.lat, p.lng], { icon: icone })
+            .addTo(mapa)
+            .bindPopup(`
+            <div style="min-width:180px">
+                <strong style="font-size:14px">${p.nome}</strong><br>
+                <span class="badge bg-success">${p.categoria}</span><br>
+                <small class="text-muted mt-1 d-block">${p.descricao}</small>
+                <hr style="margin:6px 0">
+                <small>📍 ${p.distancia} km de você · ${p.cidade}</small>
+            </div>
+        `);
+        marcadoresPrestadores.push(marcador);
+
+        const card = document.createElement('div');
+        card.className = 'card mb-2 shadow-sm prestador-card';
+        card.style.cursor = 'pointer';
+        card.innerHTML = `
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge bg-primary me-1">${i+1}</span>
+                        <strong>${p.nome}</strong>
+                    </div>
+                    <span class="badge bg-success">${p.distancia} km</span>
+                </div>
+                <small class="text-muted d-block mt-1">🏷️ ${p.categoria} · 📍 ${p.cidade}</small>
+                <small class="text-muted">${p.descricao}</small>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            mapa.setView([p.lat, p.lng], 15);
+            marcador.openPopup();
+        });
+
+        lista.appendChild(card);
+    });
+}
+</script>
+
+<style>
+    .prestador-card:hover {
+        border-color: #198754 !important;
+        transition: border-color .2s;
+    }
+</style>
+
+{% endblock %}
