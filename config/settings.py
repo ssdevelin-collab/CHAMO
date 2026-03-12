@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     # apps do projeto
     'accounts',
     'services',
+    'channels', 
+    'chat',
 ]
 
 
@@ -139,3 +141,15 @@ LOGIN_REDIRECT_URL = 'accounts:dashboard'
 LOGOUT_REDIRECT_URL = 'accounts:home'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+ASGI_APPLICATION = 'config.asgi.application'  # troque CHAMO pelo nome do seu projeto
+ 
+# Redis como backend de mensagens
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],  # endereço padrão do Redis local
+        },
+    },
+}

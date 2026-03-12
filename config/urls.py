@@ -18,4 +18,7 @@ urlpatterns = [
 
     # serviços
     path('servicos/', include('services.urls')),
+
+    # chat
+    path('', include('chat.urls')),
 ]
