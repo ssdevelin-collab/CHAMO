@@ -5,37 +5,60 @@
 <h2>👤 Meu Perfil</h2>
 
 <div style="border:1px solid #ccc; padding:20px; width:400px">
-
-<p><strong>Nome completo:</strong> {{ user.get_full_name }}</p>
-
-<p><strong>Usuário:</strong> {{ user.username }}</p>
-
-<p><strong>Email:</strong> {{ user.email }}</p>
-
-<p><strong>CPF:</strong> {{ user.cpf }}</p>
-
+    <p><strong>Nome completo:</strong> {{ user.get_full_name }}</p>
+    <p><strong>Usuário:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>CPF:</strong> {{ user.cpf }}</p>
 </div>
 
 <br>
 
 <h3>⚙️ Configurações</h3>
-
-<a href="{% url 'password_change' %}">
-<button>🔑 Alterar senha</button>
-</a>
-
-<a href="{% url 'logout' %}">
-<button>🚪 Sair</button>
-</a>
-
+<a href="{% url 'password_change' %}"><button>🔑 Alterar senha</button></a>
+<a href="{% url 'logout' %}"><button>🚪 Sair</button></a>
 <a href="{% url 'accounts:excluir_conta' %}">
-<button style="background:red;color:white">🗑 Excluir conta</button>
+    <button style="background:red;color:white">🗑 Excluir conta</button>
 </a>
 
 <hr>
 
-<h3>💳 Pagamentos</h3>
+<!-- ===== CONVERSAS ATIVAS COM CLIENTES ===== -->
+{% if pedidos_aceitos %}
+<h3>💬 Conversas ativas</h3>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Cliente</th>
+        <th>Serviço</th>
+        <th>Status</th>
+        <th>Chat</th>
+    </tr>
+    {% for pedido in pedidos_aceitos %}
+    <tr>
+        <td>{{ pedido.cliente.full_name|default:pedido.cliente.username }}</td>
+        <td>{{ pedido.servico.nome }}</td>
+        <td>{{ pedido.get_status_display }}</td>
+        <td>
+            {% if pedido.conversa_ativa %}
+                <button onclick="abrirChat({{ pedido.conversa_ativa.id }}, '{{ pedido.cliente.username }} — {{ pedido.servico.nome }}')">
+                    💬 Abrir chat
+                </button>
+            {% else %}
+                <span style="color:#999">Sem conversa</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
 
+<hr>
+
+<h3>💳 Pagamentos</h3>
 <p>Aqui você poderá visualizar histórico de pagamentos futuramente.</p>
 
+{% endblock %}
+
+
+{% block chat %}
+    {% include 'chat/chat_widget.html' %}
 {% endblock %}

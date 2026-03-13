@@ -1,13 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from .forms import RegisterForm, PrestadorProfileForm
 from .models import PrestadorProfile
-from services.models import Service, Pedido
+from services.models import Service, Pedido, Pagamento
 from services.forms import ServiceForm
-from django.shortcuts import render, redirect
-from django.contrib.auth import logout
-from services.models import Pagamento
+from chat.models import Conversa
 
 
 # ===============================
@@ -23,29 +21,17 @@ def home(request):
 # ===============================
 
 def register(request):
-
     if request.method == 'POST':
         form = RegisterForm(request.POST)
-
         if form.is_valid():
             user = form.save()
-
-            # cria perfil automaticamente se for prestador
             if user.user_type == 'prestador':
                 PrestadorProfile.objects.create(usuario=user)
-
             login(request, user)
-
             return redirect('accounts:dashboard')
-
     else:
         form = RegisterForm()
-
-    return render(
-        request,
-        'register.html',
-        {'form': form}
-    )
+    return render(request, 'register.html', {'form': form})
 
 
 # ===============================
@@ -54,10 +40,8 @@ def register(request):
 
 @login_required
 def dashboard(request):
-
     if request.user.user_type == 'prestador':
         return redirect('accounts:dashboard_prestador')
-
     return redirect('accounts:dashboard_cliente')
 
 
@@ -67,20 +51,10 @@ def dashboard(request):
 
 @login_required
 def dashboard_cliente(request):
-
     pedidos = Pedido.objects.filter(
         cliente=request.user
     ).order_by('-criado_em')
-
-    context = {
-        'pedidos': pedidos
-    }
-
-    return render(
-        request,
-        'accounts/dashboard_cliente.html',
-        context
-    )
+    return render(request, 'accounts/dashboard_cliente.html', {'pedidos': pedidos})
 
 
 # ===============================
@@ -89,25 +63,10 @@ def dashboard_cliente(request):
 
 @login_required
 def dashboard_prestador(request):
-
-    servicos = Service.objects.filter(
-        prestador=request.user
-    )
-
-    pedidos_pendentes = Pedido.objects.filter(
-        servico__prestador=request.user,
-        status='pendente'
-    )
-
-    pedidos_andamento = Pedido.objects.filter(
-        servico__prestador=request.user,
-        status__in=['aceito', 'em_andamento']
-    )
-
-    pedidos_finalizados = Pedido.objects.filter(
-        servico__prestador=request.user,
-        status='finalizado'
-    )
+    servicos = Service.objects.filter(prestador=request.user)
+    pedidos_pendentes = Pedido.objects.filter(servico__prestador=request.user, status='pendente')
+    pedidos_andamento = Pedido.objects.filter(servico__prestador=request.user, status__in=['aceito', 'em_andamento'])
+    pedidos_finalizados = Pedido.objects.filter(servico__prestador=request.user, status='finalizado')
 
     context = {
         'servicos': servicos,
@@ -115,12 +74,7 @@ def dashboard_prestador(request):
         'pedidos_andamento': pedidos_andamento,
         'pedidos_finalizados': pedidos_finalizados,
     }
-
-    return render(
-        request,
-        'accounts/dashboard_prestador.html',
-        context
-    )
+    return render(request, 'accounts/dashboard_prestador.html', context)
 
 
 # ===============================
@@ -129,35 +83,67 @@ def dashboard_prestador(request):
 
 @login_required
 def perfil_prestador(request):
-
-    # impede cliente de acessar
     if request.user.user_type != 'prestador':
         return redirect('accounts:dashboard')
-
-    perfil, created = PrestadorProfile.objects.get_or_create(
-        usuario=request.user
-    )
-
+ 
+    perfil, created = PrestadorProfile.objects.get_or_create(usuario=request.user)
+ 
     if request.method == 'POST':
-
-        form = PrestadorProfileForm(
-            request.POST,
-            request.FILES,
-            instance=perfil
-        )
-
+        form = PrestadorProfileForm(request.POST, request.FILES, instance=perfil)
         if form.is_valid():
             form.save()
             return redirect('accounts:dashboard_prestador')
-
     else:
         form = PrestadorProfileForm(instance=perfil)
+ 
+    # Busca pedidos aceitos ou em andamento do prestador
+    pedidos_aceitos = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status__in=['aceito', 'em_andamento']
+    ).order_by('-criado_em')
+ 
+    # Adiciona a conversa em cada pedido (se existir)
+    for pedido in pedidos_aceitos:
+        try:
+            pedido.conversa_ativa = pedido.conversa
+        except Exception:
+            pedido.conversa_ativa = None
+ 
+    return render(request, 'accounts/perfil_prestador.html', {
+        'form': form,
+        'pedidos_aceitos': pedidos_aceitos,
+    })
 
-    return render(
-        request,
-        'accounts/perfil_prestador.html',
-        {'form': form}
-    )
+
+# ===============================
+# PERFIL DO CLIENTE (corrigido ✅)
+# ===============================
+
+@login_required
+def perfil_usuario(request):
+    pagamentos = Pagamento.objects.filter(
+        cliente=request.user
+    ).order_by('-criado_em')
+
+    # Busca pedidos aceitos e tenta pegar a conversa de cada um
+    pedidos_aceitos = Pedido.objects.filter(
+        cliente=request.user,
+        status__in=['aceito', 'em_andamento']
+    ).order_by('-criado_em')
+
+    # Adiciona a conversa em cada pedido (se existir)
+    for pedido in pedidos_aceitos:
+        try:
+            pedido.conversa_ativa = pedido.conversa
+        except Conversa.DoesNotExist:
+            pedido.conversa_ativa = None
+
+    context = {
+        'user': request.user,
+        'pagamentos': pagamentos,
+        'pedidos_aceitos': pedidos_aceitos,
+    }
+    return render(request, 'accounts/perfil.html', context)
 
 
 # ===============================
@@ -166,28 +152,15 @@ def perfil_prestador(request):
 
 @login_required
 def editar_servico(request, servico_id):
-
-    servico = get_object_or_404(
-        Service,
-        id=servico_id,
-        prestador=request.user
-    )
-
+    servico = get_object_or_404(Service, id=servico_id, prestador=request.user)
     if request.method == "POST":
         form = ServiceForm(request.POST, request.FILES, instance=servico)
-
         if form.is_valid():
             form.save()
             return redirect('accounts:dashboard_prestador')
-
     else:
         form = ServiceForm(instance=servico)
-
-    return render(
-        request,
-        'services/editar_servico.html',
-        {'form': form}
-    )
+    return render(request, 'services/editar_servico.html', {'form': form})
 
 
 # ===============================
@@ -196,50 +169,17 @@ def editar_servico(request, servico_id):
 
 @login_required
 def excluir_servico(request, servico_id):
-
-    servico = get_object_or_404(
-        Service,
-        id=servico_id,
-        prestador=request.user
-    )
-
+    servico = get_object_or_404(Service, id=servico_id, prestador=request.user)
     servico.delete()
-
     return redirect('accounts:dashboard_prestador')
 
-@login_required
-def perfil_usuario(request):
-    user = request.user
 
-    context = {
-        'user': user
-    }
-
-    return render(request, 'accounts/perfil.html', context)
-
+# ===============================
+# EXCLUIR CONTA
+# ===============================
 
 @login_required
 def excluir_conta(request):
     user = request.user
     user.delete()
     return redirect('login')
-@login_required
-def perfil_usuario(request):
-
-    pagamentos = Pagamento.objects.filter(
-        cliente=request.user
-    ).order_by('-criado_em')
-
-    context = {
-        'user': request.user,
-        'pagamentos': pagamentos
-    }
-
-    return render(
-        request,
-        'accounts/perfil.html',
-        context
-    )
-@login_required
-def perfil_usuario(request):
-    return render(request, 'accounts/perfil.html')
