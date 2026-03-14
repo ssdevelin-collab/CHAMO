@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User, PrestadorProfile
-
+from .models import ClienteProfile, PrestadorProfile
+from .models import PrestadorProfile
+from .models import User
 
 class RegisterForm(UserCreationForm):
 
@@ -29,7 +31,9 @@ class PrestadorProfileForm(forms.ModelForm):
         fields = [
             'nome_empresa',
             'descricao',
-            'cidade',
-            'categoria',
-            'foto',
+            'foto'
         ]
+class FotoPerfilForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['full_name', 'cpf', 'phone', 'address', 'city', 'birth_date']

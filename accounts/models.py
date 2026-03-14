@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
 
 
 # =========================
@@ -67,39 +68,51 @@ class User(AbstractUser):
 class PrestadorProfile(models.Model):
 
     usuario = models.OneToOneField(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='perfil_prestador'
     )
 
-    nome_empresa = models.CharField(max_length=200)
-
-    descricao = models.TextField()
-
-    categoria = models.CharField(max_length=100)
-
-    cidade = models.CharField(max_length=100)
-
+        
     foto = models.ImageField(
-        upload_to='prestadores/',
-        blank=True,
-        null=True
+    upload_to='perfil/',
+    null=True,
+    blank=True
+    )
+
+    nome_empresa = models.CharField(
+        max_length=200,
+        blank=True
+    )
+
+    descricao = models.TextField(
+        blank=True
+    )
+
+    categoria = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    cidade = models.CharField(
+        max_length=100,
+        blank=True
     )
 
     ativo = models.BooleanField(default=True)
 
-    # localização (para busca por proximidade)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.nome_empresa
+        return self.usuario.username
+
 
 
 # =========================
-# AVALIAÇÃO DE PRESTADORES
+# AVALIAÇÃO DE PRESTADOR
 # =========================
 
 class Avaliacao(models.Model):
@@ -111,7 +124,7 @@ class Avaliacao(models.Model):
     )
 
     cliente = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
     )
 
@@ -122,4 +135,14 @@ class Avaliacao(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Avaliação {self.nota}⭐ para {self.prestador.nome_empresa}"
+        return f"{self.nota}⭐ para {self.prestador.usuario.username}"
+class ClienteProfile(models.Model):
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='perfil_cliente'
+    )
+    foto = models.ImageField(upload_to='perfil/', null=True, blank=True)
+
+    def __str__(self):
+        return self.usuario.username

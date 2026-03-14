@@ -183,4 +183,26 @@ def excluir_conta(request):
     user = request.user
     user.delete()
     return redirect('login')
+@login_required
+def perfil(request):
+
+    user = request.user
+
+    prestador = None
+    cliente = None
+
+    if hasattr(user, 'perfil_prestador'):
+        prestador = user.perfil_prestador
+
+    if hasattr(user, 'perfil_cliente'):
+        cliente = user.perfil_cliente
+
+    context = {
+        'user': user,
+        'prestador': prestador,
+        'cliente': cliente
+    }
+
+    return render(request, 'accounts/perfil.html', context)
+
 
