@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'services',
     'channels', 
     'chat',
+    'avaliacoes',
 ]
 
 

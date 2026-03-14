@@ -7,6 +7,7 @@ import math
 from .forms import ServiceForm
 from .models import Service, Pedido
 from accounts.models import PrestadorProfile
+from chat.models import Conversa
 
 
 # =========================
@@ -172,15 +173,24 @@ def pedidos_prestador(request):
 
 @login_required
 def aceitar_pedido(request, pedido_id):
-
+ 
     pedido = get_object_or_404(Pedido, id=pedido_id)
-
+ 
     if pedido.servico.prestador != request.user:
         return redirect('accounts:dashboard')
-
+ 
     pedido.status = 'aceito'
     pedido.save()
-
+ 
+    # ✅ Cria a conversa automaticamente ao aceitar o pedido
+    Conversa.objects.get_or_create(
+        pedido=pedido,
+        defaults={
+            'cliente': pedido.cliente,
+            'prestador': request.user,
+        }
+    )
+ 
     return redirect('accounts:dashboard_prestador')
 
 

@@ -4,6 +4,15 @@
 
 <h2>👤 Minha Conta</h2>
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
 <div style="border:1px solid #ccc; padding:20px; width:400px">
     <p><strong>Nome completo:</strong> {{ user.full_name }}</p>
     <p><strong>Usuário:</strong> {{ user.username }}</p>
@@ -19,7 +28,7 @@
 
 <hr>
 
-<!-- ===== PEDIDOS COM CHAT ATIVO ===== -->
+<!-- ===== CONVERSAS ATIVAS ===== -->
 {% if pedidos_aceitos %}
 <h3>💬 Conversas ativas</h3>
 <table border="1" cellpadding="8">
@@ -48,14 +57,41 @@
 
 <hr>
 
+<!-- ===== PEDIDOS FINALIZADOS — AVALIAR ===== -->
+{% if pedidos_finalizados %}
+<h3>✅ Serviços finalizados</h3>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Serviço</th>
+        <th>Prestador</th>
+        <th>Avaliação</th>
+    </tr>
+    {% for pedido in pedidos_finalizados %}
+    <tr>
+        <td>{{ pedido.servico.nome }}</td>
+        <td>{{ pedido.servico.prestador.full_name|default:pedido.servico.prestador.username }}</td>
+        <td>
+            {% if pedido.ja_avaliado %}
+                <span style="color:green">✅ Avaliado ({{ pedido.nota_dada }}★)</span>
+            {% else %}
+                <button onclick="abrirModalAvaliacao(
+                    '{% url 'avaliacoes:avaliar_como_cliente' pedido.id %}',
+                    'Avaliando: {{ pedido.servico.nome }}'
+                )">⭐ Avaliar</button>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
+<hr>
+
 <h3>💳 Pagamentos</h3>
 {% if pagamentos %}
 <table border="1" cellpadding="8">
     <tr>
-        <th>Serviço</th>
-        <th>Valor</th>
-        <th>Status</th>
-        <th>Data</th>
+        <th>Serviço</th><th>Valor</th><th>Status</th><th>Data</th>
     </tr>
     {% for pagamento in pagamentos %}
     <tr>
@@ -70,8 +106,9 @@
 <p>Nenhum pagamento encontrado.</p>
 {% endif %}
 
-{% endblock %}
+{% include 'avaliacao/modal_avaliacao.html' %}
 
+{% endblock %}
 
 {% block chat %}
     {% include 'chat/chat_widget.html' %}

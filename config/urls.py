@@ -21,4 +21,7 @@ urlpatterns = [
 
     # chat
     path('', include('chat.urls')),
+
+    #avaliacao
+    path('', include('avaliacoes.urls')),
 ]

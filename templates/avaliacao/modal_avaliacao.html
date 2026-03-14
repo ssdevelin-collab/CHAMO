@@ -1,0 +1,108 @@
+<!-- templates/avaliacoes/modal_avaliacao.html -->
+
+<!-- ===== MODAL DE AVALIAÇÃO ===== -->
+<div class="modal fade" id="modalAvaliacao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">⭐ Avaliar serviço</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" id="formAvaliacao">
+                {% csrf_token %}
+                <div class="modal-body">
+
+                    <p id="modalDescricao" class="text-muted mb-3"></p>
+
+                    <!-- Estrelas -->
+                    <div class="text-center mb-3">
+                        <label class="form-label fw-semibold d-block">Sua nota</label>
+                        <div id="starsWrapper" class="d-flex flex-row-reverse justify-content-center gap-1 mb-1">
+                            <input type="radio" name="nota_visual" id="star5" value="5" class="d-none">
+                            <label for="star5" class="fs-1" style="cursor:pointer; color:#ccc; transition:color .15s;">★</label>
+                            <input type="radio" name="nota_visual" id="star4" value="4" class="d-none">
+                            <label for="star4" class="fs-1" style="cursor:pointer; color:#ccc; transition:color .15s;">★</label>
+                            <input type="radio" name="nota_visual" id="star3" value="3" class="d-none">
+                            <label for="star3" class="fs-1" style="cursor:pointer; color:#ccc; transition:color .15s;">★</label>
+                            <input type="radio" name="nota_visual" id="star2" value="2" class="d-none">
+                            <label for="star2" class="fs-1" style="cursor:pointer; color:#ccc; transition:color .15s;">★</label>
+                            <input type="radio" name="nota_visual" id="star1" value="1" class="d-none">
+                            <label for="star1" class="fs-1" style="cursor:pointer; color:#ccc; transition:color .15s;">★</label>
+                        </div>
+                        <small id="starsHint" class="text-muted">Clique em uma estrela para avaliar</small>
+                        <input type="hidden" name="nota" id="notaHidden">
+                    </div>
+
+                    <!-- Comentário -->
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">
+                            Comentário <span class="text-muted fw-normal">(opcional)</span>
+                        </label>
+                        <textarea name="comentario" rows="3" class="form-control"
+                            placeholder="Conte como foi sua experiência..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnEnviarAvaliacao" disabled>
+                        Enviar avaliação
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- CSS e JS do modal — inline pois é um include -->
+<style>
+    #starsWrapper label:hover,
+    #starsWrapper label:hover ~ label,
+    #starsWrapper input[type="radio"]:checked ~ label {
+        color: #ffc107 !important;
+    }
+</style>
+
+<script>
+    const hints = {
+        1: '1 — Péssimo 😤',
+        2: '2 — Ruim 😕',
+        3: '3 — Regular 😐',
+        4: '4 — Bom 😊',
+        5: '5 — Excelente 🤩'
+    };
+
+    const notaHidden = document.getElementById('notaHidden');
+    const btnEnviar  = document.getElementById('btnEnviarAvaliacao');
+    const hint       = document.getElementById('starsHint');
+
+    document.querySelectorAll('input[name="nota_visual"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            notaHidden.value = radio.value;
+            hint.textContent = hints[radio.value];
+            btnEnviar.disabled = false;
+        });
+    });
+
+    document.querySelectorAll('#starsWrapper label').forEach(label => {
+        const val = label.getAttribute('for').replace('star', '');
+        label.addEventListener('mouseenter', () => hint.textContent = hints[val]);
+        label.addEventListener('mouseleave', () => {
+            hint.textContent = notaHidden.value ? hints[notaHidden.value] : 'Clique em uma estrela para avaliar';
+        });
+    });
+
+    function abrirModalAvaliacao(url, descricao) {
+        document.getElementById('formAvaliacao').action = url;
+        document.getElementById('modalDescricao').textContent = descricao;
+        document.querySelectorAll('input[name="nota_visual"]').forEach(r => r.checked = false);
+        notaHidden.value = '';
+        hint.textContent = 'Clique em uma estrela para avaliar';
+        btnEnviar.disabled = true;
+        new bootstrap.Modal(document.getElementById('modalAvaliacao')).show();
+    }
+</script>

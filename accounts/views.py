@@ -6,6 +6,7 @@ from .models import PrestadorProfile
 from services.models import Service, Pedido, Pagamento
 from services.forms import ServiceForm
 from chat.models import Conversa
+from avaliacoes.models import AvaliacaoCliente, AvaliacaoPrestador
 
 
 # ===============================
@@ -83,6 +84,9 @@ def dashboard_prestador(request):
 
 @login_required
 def perfil_prestador(request):
+    from avaliacoes.models import AvaliacaoPrestador
+    from chat.models import Conversa
+ 
     if request.user.user_type != 'prestador':
         return redirect('accounts:dashboard')
  
@@ -96,23 +100,37 @@ def perfil_prestador(request):
     else:
         form = PrestadorProfileForm(instance=perfil)
  
-    # Busca pedidos aceitos ou em andamento do prestador
     pedidos_aceitos = Pedido.objects.filter(
         servico__prestador=request.user,
         status__in=['aceito', 'em_andamento']
     ).order_by('-criado_em')
  
-    # Adiciona a conversa em cada pedido (se existir)
     for pedido in pedidos_aceitos:
         try:
             pedido.conversa_ativa = pedido.conversa
         except Exception:
             pedido.conversa_ativa = None
  
+    pedidos_finalizados = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status='finalizado'
+    ).order_by('-criado_em')
+ 
+    for pedido in pedidos_finalizados:
+        try:
+            avaliacao = pedido.avaliacao_do_prestador
+            pedido.ja_avaliado = True
+            pedido.nota_dada = avaliacao.nota
+        except Exception:
+            pedido.ja_avaliado = False
+            pedido.nota_dada = None
+ 
     return render(request, 'accounts/perfil_prestador.html', {
         'form': form,
         'pedidos_aceitos': pedidos_aceitos,
+        'pedidos_finalizados': pedidos_finalizados,
     })
+ 
 
 
 # ===============================
@@ -121,30 +139,44 @@ def perfil_prestador(request):
 
 @login_required
 def perfil_usuario(request):
+    from avaliacoes.models import AvaliacaoCliente
+    from chat.models import Conversa
+ 
     pagamentos = Pagamento.objects.filter(
         cliente=request.user
     ).order_by('-criado_em')
-
-    # Busca pedidos aceitos e tenta pegar a conversa de cada um
+ 
     pedidos_aceitos = Pedido.objects.filter(
         cliente=request.user,
         status__in=['aceito', 'em_andamento']
     ).order_by('-criado_em')
-
-    # Adiciona a conversa em cada pedido (se existir)
+ 
     for pedido in pedidos_aceitos:
         try:
             pedido.conversa_ativa = pedido.conversa
-        except Conversa.DoesNotExist:
+        except Exception:
             pedido.conversa_ativa = None
-
-    context = {
+ 
+    pedidos_finalizados = Pedido.objects.filter(
+        cliente=request.user,
+        status='finalizado'
+    ).order_by('-criado_em')
+ 
+    for pedido in pedidos_finalizados:
+        try:
+            avaliacao = pedido.avaliacao_do_cliente
+            pedido.ja_avaliado = True
+            pedido.nota_dada = avaliacao.nota
+        except Exception:
+            pedido.ja_avaliado = False
+            pedido.nota_dada = None
+ 
+    return render(request, 'accounts/perfil.html', {
         'user': request.user,
         'pagamentos': pagamentos,
         'pedidos_aceitos': pedidos_aceitos,
-    }
-    return render(request, 'accounts/perfil.html', context)
-
+        'pedidos_finalizados': pedidos_finalizados,
+    })
 
 # ===============================
 # EDITAR SERVIÇO

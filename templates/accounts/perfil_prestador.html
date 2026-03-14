@@ -4,6 +4,15 @@
 
 <h2>👤 Meu Perfil</h2>
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
 <div style="border:1px solid #ccc; padding:20px; width:400px">
     <p><strong>Nome completo:</strong> {{ user.get_full_name }}</p>
     <p><strong>Usuário:</strong> {{ user.username }}</p>
@@ -22,15 +31,12 @@
 
 <hr>
 
-<!-- ===== CONVERSAS ATIVAS COM CLIENTES ===== -->
+<!-- ===== CONVERSAS ATIVAS ===== -->
 {% if pedidos_aceitos %}
 <h3>💬 Conversas ativas</h3>
 <table border="1" cellpadding="8">
     <tr>
-        <th>Cliente</th>
-        <th>Serviço</th>
-        <th>Status</th>
-        <th>Chat</th>
+        <th>Cliente</th><th>Serviço</th><th>Status</th><th>Chat</th>
     </tr>
     {% for pedido in pedidos_aceitos %}
     <tr>
@@ -53,11 +59,40 @@
 
 <hr>
 
+<!-- ===== PEDIDOS FINALIZADOS — AVALIAR ===== -->
+{% if pedidos_finalizados %}
+<h3>✅ Serviços finalizados</h3>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Cliente</th><th>Serviço</th><th>Avaliação</th>
+    </tr>
+    {% for pedido in pedidos_finalizados %}
+    <tr>
+        <td>{{ pedido.cliente.full_name|default:pedido.cliente.username }}</td>
+        <td>{{ pedido.servico.nome }}</td>
+        <td>
+            {% if pedido.ja_avaliado %}
+                <span style="color:green">✅ Avaliado ({{ pedido.nota_dada }}★)</span>
+            {% else %}
+                <button onclick="abrirModalAvaliacao(
+                    '{% url 'avaliacoes:avaliar_como_prestador' pedido.id %}',
+                    'Avaliando cliente: {{ pedido.cliente.username }}'
+                )">⭐ Avaliar cliente</button>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
+<hr>
+
 <h3>💳 Pagamentos</h3>
 <p>Aqui você poderá visualizar histórico de pagamentos futuramente.</p>
 
-{% endblock %}
+{% include 'avaliacao/modal_avaliacao.html' %}
 
+{% endblock %}
 
 {% block chat %}
     {% include 'chat/chat_widget.html' %}

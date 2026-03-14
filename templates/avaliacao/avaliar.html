@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+
+        <div class="card shadow">
+            <div class="card-body">
+
+                <h3 class="text-center mb-4">Avaliar {{ prestador.nome }}</h3>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if avaliacao_existente %}
+                    <div class="alert alert-warning text-center py-2">
+                        ✏️ Você já avaliou este prestador — editando sua nota
+                    </div>
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Campo hidden que guarda a nota escolhida -->
+                    {{ form.nota }}
+
+                    <!-- Estrelas -->
+                    <div class="mb-3 text-center">
+                        <label class="form-label fw-semibold">Sua nota</label>
+                        <div id="starsWrapper" class="d-flex flex-row-reverse justify-content-center gap-1 mb-1">
+                            {% for value, label in form.fields.nota.choices %}
+                            <input type="radio" name="nota_visual" id="star{{ value }}" value="{{ value }}" class="d-none"
+                                {% if avaliacao_existente and avaliacao_existente.nota == value %}checked{% endif %}>
+                            <label for="star{{ value }}" title="{{ label }}" class="star-label fs-1" style="cursor:pointer; color:#ccc; transition: color .15s;">★</label>
+                            {% endfor %}
+                        </div>
+                        <small id="starsHint" class="text-muted">
+                            {% if avaliacao_existente %}Nota atual: {{ avaliacao_existente.nota }}★{% else %}Clique em uma estrela para avaliar{% endif %}
+                        </small>
+                        {% if form.nota.errors %}
+                            <div class="text-danger small mt-1">Por favor, selecione uma nota.</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Comentário -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Comentário <span class="text-muted fw-normal">(opcional)</span></label>
+                        {{ form.comentario }}
+                        {% if form.comentario.errors %}
+                            <div class="text-danger small mt-1">{{ form.comentario.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">
+                        {% if avaliacao_existente %}Atualizar avaliação{% else %}Enviar avaliação{% endif %}
+                    </button>
+
+                    <a href="{% url 'perfil_prestador' prestador.id %}" class="btn btn-outline-secondary w-100 mt-2">
+                        ← Voltar ao perfil
+                    </a>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<style>
+    /* Estrelas: hover acumula para a esquerda graças ao flex-row-reverse */
+    #starsWrapper label:hover,
+    #starsWrapper label:hover ~ label,
+    #starsWrapper input[type="radio"]:checked ~ label {
+        color: #ffc107 !important;
+    }
+</style>
+
+<script>
+    const hints = {
+        1: '1 — Péssimo 😤',
+        2: '2 — Ruim 😕',
+        3: '3 — Regular 😐',
+        4: '4 — Bom 😊',
+        5: '5 — Excelente 🤩'
+    };
+
+    const radios     = document.querySelectorAll('input[name="nota_visual"]');
+    const notaHidden = document.getElementById('id_nota');
+    const hint       = document.getElementById('starsHint');
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            notaHidden.value = radio.value;
+            hint.textContent = hints[radio.value];
+        });
+
+        if (radio.checked) {
+            notaHidden.value = radio.value;
+        }
+    });
+
+    document.querySelectorAll('#starsWrapper label').forEach(label => {
+        const val = label.getAttribute('for').replace('star', '');
+        label.addEventListener('mouseenter', () => hint.textContent = hints[val]);
+        label.addEventListener('mouseleave', () => {
+            const checked = document.querySelector('input[name="nota_visual"]:checked');
+            hint.textContent = checked ? hints[checked.value] : 'Clique em uma estrela para avaliar';
+        });
+    });
+</script>
+{% endblock %}
