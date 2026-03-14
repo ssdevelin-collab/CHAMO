@@ -16,6 +16,7 @@ urlpatterns = [
     path('perfil-prestador/', views.perfil_prestador, name='perfil_prestador'),
     path('excluir-conta/', views.excluir_conta, name='excluir_conta'),
     path('perfil/', views.perfil_usuario, name='perfil'),
+    path('perfil/', views.perfil, name='perfil'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

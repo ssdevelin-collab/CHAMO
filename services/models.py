@@ -153,3 +153,9 @@ class Pagamento(models.Model):
 
     def __str__(self):
         return f"{self.pedido} - R$ {self.valor}"
+STATUS_CHOICES = [
+    ('pendente', 'Pendente'),
+    ('aceito', 'Aceito'),
+    ('em_andamento', 'Em andamento'),
+    ('finalizado', 'Finalizado'),
+]

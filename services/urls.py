@@ -94,5 +94,26 @@ urlpatterns = [
         views.catalogo_prestador,
         name='catalogo_prestador'
     ),
+    path(
+    'api/buscar-servicos/',
+    views.buscar_servicos_api,
+    name='buscar_servicos_api'
+    ),
+        path(
+        'meu-catalogo/',
+        views.catalogo_prestador,
+        name='catalogo_prestador'
+    ),
 
+    path(
+        'api/buscar-servicos/',
+        views.buscar_servicos_api,
+        name='buscar_servicos_api'
+    ),
+
+    path(
+        'prestador/<int:user_id>/',
+        views.pagina_prestador,
+        name='pagina_prestador'
+    ),
 ]

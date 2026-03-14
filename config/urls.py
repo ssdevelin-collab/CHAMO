@@ -2,7 +2,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 urlpatterns = [
+
     path('admin/', admin.site.urls),
 
     # tela inicial (login)
@@ -13,7 +18,7 @@ urlpatterns = [
     # sistema de autenticação do django
     path('accounts/', include('django.contrib.auth.urls')),
 
-    # rotas do seu app
+    # rotas do app accounts
     path('', include('accounts.urls')),
 
     # serviços
@@ -21,7 +26,20 @@ urlpatterns = [
 
     # chat
     path('', include('chat.urls')),
+<<<<<<< HEAD
 
     #avaliacao
     path('', include('avaliacoes.urls')),
 ]
+=======
+]
+
+
+# SERVIR ARQUIVOS DE MEDIA (FOTOS DE PERFIL)
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
+>>>>>>> 7bbb1f66adf327cddcc7c3631f113ba81616806c
