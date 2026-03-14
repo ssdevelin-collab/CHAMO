@@ -193,22 +193,6 @@ def meus_pedidos(request):
 # =========================
 # PEDIDOS PRESTADOR
 # =========================
-
-@login_required
-def pedidos_prestador(request):
-
-    pedidos = Pedido.objects.filter(
-        servico__prestador=request.user,
-        status='pendente'
-    )
-
-    return render(
-        request,
-        'services/pedidos_prestador.html',
-        {'pedidos': pedidos}
-    )
-
-
 # =========================
 # ACEITAR PEDIDO
 # =========================
@@ -466,5 +450,32 @@ def pagina_prestador(request, user_id):
         {
             'prestador': prestador,
             'servicos': servicos
+        }
+    )
+@login_required
+def pedidos_prestador(request):
+
+    pedidos_pendentes = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status='pendente'
+    )
+
+    pedidos_andamento = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status__in=['aceito', 'em_andamento']
+    )
+
+    pedidos_finalizados = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status='finalizado'
+    )
+
+    return render(
+        request,
+        'services/pedidos_prestador.html',
+        {
+            'pedidos_pendentes': pedidos_pendentes,
+            'pedidos_andamento': pedidos_andamento,
+            'pedidos_finalizados': pedidos_finalizados
         }
     )

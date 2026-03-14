@@ -5,26 +5,28 @@
 <div class="container mt-4">
 
 <h4 class="fw-bold">
-📦 Pedidos recebidos
+📦 Pedidos
 </h4>
 
 <p class="text-muted">
-Gerencie os pedidos dos seus clientes
+Gerencie os serviços solicitados pelos seus clientes
 </p>
-
-<hr class="my-4">
 
 <!-- PEDIDOS PENDENTES -->
 
+<div class="section-box">
+
 <h5 class="fw-bold mb-3">
-⏳ Pedidos pendentes
+⏳ Pedidos recebidos
 </h5>
 
 {% for pedido in pedidos_pendentes %}
 
-<div class="card mb-3 prestador-card">
+<div class="card pedido-card">
 
-<div class="card-body">
+<div class="card-body d-flex justify-content-between align-items-center">
+
+<div>
 
 <strong>
 {{ pedido.servico.nome }}
@@ -34,7 +36,9 @@ Gerencie os pedidos dos seus clientes
 Cliente: {{ pedido.cliente.username }}
 </div>
 
-<div class="mt-3 d-flex gap-2">
+</div>
+
+<div class="d-flex gap-2">
 
 <a href="{% url 'services:aceitar_pedido' pedido.id %}"
 class="btn btn-success btn-sm">
@@ -59,14 +63,17 @@ Recusar
 {% empty %}
 
 <p class="text-muted">
-Nenhum pedido pendente.
+Nenhum pedido recebido no momento.
 </p>
 
 {% endfor %}
 
-<hr class="my-5">
+</div>
+
 
 <!-- SERVIÇOS EM ANDAMENTO -->
+
+<div class="section-box mt-5">
 
 <h5 class="fw-bold mb-3">
 🚧 Serviços em andamento
@@ -74,9 +81,11 @@ Nenhum pedido pendente.
 
 {% for pedido in pedidos_andamento %}
 
-<div class="card mb-3 prestador-card">
+<div class="card pedido-card">
 
-<div class="card-body">
+<div class="card-body d-flex justify-content-between align-items-center">
+
+<div>
 
 <strong>
 {{ pedido.servico.nome }}
@@ -86,7 +95,9 @@ Nenhum pedido pendente.
 Cliente: {{ pedido.cliente.username }}
 </div>
 
-<div class="mt-3">
+</div>
+
+<div>
 
 {% if pedido.status == 'aceito' %}
 
@@ -104,7 +115,7 @@ class="btn btn-orange btn-sm">
 <a href="{% url 'services:finalizar_servico' pedido.id %}"
 class="btn btn-success btn-sm">
 
-✅ Finalizar serviço
+✅ Finalizar
 
 </a>
 
@@ -126,7 +137,82 @@ Nenhum serviço em andamento.
 
 </div>
 
+
+<!-- SERVIÇOS FINALIZADOS -->
+
+<div class="section-box mt-5">
+
+<h5 class="fw-bold mb-3">
+✅ Serviços finalizados
+</h5>
+
+{% for pedido in pedidos_finalizados %}
+
+<div class="card pedido-card">
+
+<div class="card-body d-flex justify-content-between align-items-center">
+
+<div>
+
+<strong>
+{{ pedido.servico.nome }}
+</strong>
+
+<div class="text-muted small">
+Cliente: {{ pedido.cliente.username }}
+</div>
+
+</div>
+
+<div class="badge bg-success">
+Finalizado
+</div>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<p class="text-muted">
+Nenhum serviço finalizado ainda.
+</p>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+
 <style>
+
+/* SEÇÕES */
+
+.section-box{
+background:white;
+padding:25px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+
+/* CARDS */
+
+.pedido-card{
+border:none;
+border-radius:14px;
+margin-bottom:15px;
+box-shadow:0 5px 15px rgba(0,0,0,0.06);
+transition:0.2s;
+}
+
+.pedido-card:hover{
+transform:translateY(-2px);
+}
+
+
+/* BOTÃO LARANJA */
 
 .btn-orange{
 background:#F97316;
@@ -136,11 +222,7 @@ border:none;
 
 .btn-orange:hover{
 background:#EA580C;
-}
-
-.prestador-card{
-border-radius:14px;
-box-shadow:0 8px 20px rgba(0,0,0,0.08);
+color:white;
 }
 
 </style>
