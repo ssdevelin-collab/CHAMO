@@ -183,3 +183,24 @@ def excluir_conta(request):
     user = request.user
     user.delete()
     return redirect('login')
+@login_required
+def pedidos_prestador(request):
+
+    pedidos_pendentes = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status='pendente'
+    )
+
+    pedidos_andamento = Pedido.objects.filter(
+        servico__prestador=request.user,
+        status__in=['aceito','em_andamento']
+    )
+
+    return render(
+        request,
+        'services/pedidos_prestador.html',
+        {
+            'pedidos_pendentes': pedidos_pendentes,
+            'pedidos_andamento': pedidos_andamento
+        }
+    )
