@@ -26,14 +26,12 @@ urlpatterns = [
 
     # chat
     path('', include('chat.urls')),
-<<<<<<< HEAD
+
 
     #avaliacao
     path('', include('avaliacoes.urls')),
+    path('chat/', include('chat.urls')),
 ]
-=======
-]
-
 
 # SERVIR ARQUIVOS DE MEDIA (FOTOS DE PERFIL)
 
@@ -42,4 +40,3 @@ if settings.DEBUG:
         settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT
     )
->>>>>>> 7bbb1f66adf327cddcc7c3631f113ba81616806c

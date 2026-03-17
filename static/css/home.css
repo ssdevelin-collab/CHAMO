@@ -260,3 +260,85 @@ main {
                 cursor:pointer;
                 
                 }
+    .pedido-card {
+    position: relative;
+    z-index: 1;
+} 
+/* ================= CHAT ================= */
+
+.chat-box{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:340px;
+    height:450px;
+    background:white;
+    border-radius:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.2);
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
+    z-index:9999;
+}
+
+/* HEADER */
+.chat-header{
+    background:#F97316;
+    color:white;
+    padding:14px;
+    font-weight:600;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* MENSAGENS */
+.chat-messages{
+    flex:1;
+    padding:12px;
+    overflow-y:auto;
+    background:#fafafa;
+}
+
+/* BOLHAS */
+.msg{
+    max-width:75%;
+    padding:8px 12px;
+    border-radius:14px;
+    margin-bottom:8px;
+    font-size:14px;
+}
+
+/* cliente (direita) */
+.msg.cliente{
+    background:#F97316;
+    color:white;
+    margin-left:auto;
+}
+
+/* prestador (esquerda) */
+.msg.prestador{
+    background:#e5e5e5;
+}
+
+/* INPUT */
+#chat-form{
+    display:flex;
+    border-top:1px solid #eee;
+}
+
+#chat-input{
+    flex:1;
+    border:none;
+    padding:12px;
+    outline:none;
+    font-size:14px;
+}
+
+#chat-form button{
+    background:#F97316;
+    color:white;
+    border:none;
+    padding:12px 16px;
+    cursor:pointer;
+}

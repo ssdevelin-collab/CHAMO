@@ -17,6 +17,7 @@ urlpatterns = [
     path('excluir-conta/', views.excluir_conta, name='excluir_conta'),
     path('perfil/', views.perfil_usuario, name='perfil'),
     path('perfil/', views.perfil, name='perfil'),
+    path('cliente/<int:user_id>/', views.perfil_cliente, name='perfil_cliente'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

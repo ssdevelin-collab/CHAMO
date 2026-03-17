@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h3 class="fw-bold">
+👤 Cliente
+</h3>
+
+<!-- CARD PRINCIPAL -->
+
+<div class="card p-4 shadow-sm rounded-4">
+
+<h5 class="fw-bold">
+{{ cliente.username }}
+</h5>
+
+<div class="text-muted">
+Cliente da plataforma
+</div>
+
+<div class="mt-3 d-flex gap-2 flex-wrap">
+
+<!-- CHAT -->
+<a href="#" class="btn btn-primary btn-sm">
+💬 Conversar
+</a>
+
+<!-- AVALIAÇÃO (fake por enquanto) -->
+<span class="badge bg-warning text-dark p-2">
+⭐ 4.8
+</span>
+
+</div>
+
+</div>
+
+<!-- MAPA / ENDEREÇO -->
+
+{% if ultimo_pedido %}
+
+<div class="mt-4">
+
+<h5 class="fw-bold">
+📍 Local do serviço
+</h5>
+
+<div class="card p-3 shadow-sm rounded-3">
+
+<p class="text-muted">
+{{ ultimo_pedido.endereco|default:"Endereço não informado" }}
+</p>
+
+<!-- MAPA SIMPLES -->
+<iframe
+    width="100%"
+    height="250"
+    style="border:0; border-radius:12px;"
+    loading="lazy"
+    allowfullscreen
+    src="https://www.google.com/maps?q={{ ultimo_pedido.endereco|urlencode }}&output=embed">
+</iframe>
+
+</div>
+
+</div>
+
+{% endif %}
+
+<!-- HISTÓRICO -->
+
+<div class="mt-4">
+
+<h5 class="fw-bold">
+📦 Histórico
+</h5>
+
+{% for pedido in pedidos %}
+
+<div class="card p-3 mb-2 shadow-sm rounded-3">
+
+<strong>
+🛠 {{ pedido.servico.nome }}
+</strong>
+
+<div class="text-muted small">
+Status: {{ pedido.status }}
+</div>
+
+<div class="text-muted small">
+📍 {{ pedido.endereco|default:"Não informado" }}
+</div>
+
+</div>
+
+{% empty %}
+
+<p class="text-muted">
+Sem histórico ainda.
+</p>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+{% endblock %}

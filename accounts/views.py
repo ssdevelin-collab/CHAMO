@@ -6,9 +6,13 @@ from .models import PrestadorProfile
 from services.models import Service, Pedido, Pagamento
 from services.forms import ServiceForm
 from chat.models import Conversa
+from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from avaliacoes.models import AvaliacaoCliente, AvaliacaoPrestador
 
 
+
+User = get_user_model()
 # ===============================
 # HOME
 # ===============================
@@ -236,5 +240,24 @@ def perfil(request):
     }
 
     return render(request, 'accounts/perfil.html', context)
+@login_required
+def perfil_cliente(request, user_id):
 
+    cliente = get_object_or_404(User, id=user_id)
 
+    pedidos = Pedido.objects.filter(
+        cliente=cliente
+    ).order_by('-criado_em')
+
+    # pega o último pedido (para mapa)
+    ultimo_pedido = pedidos.first()
+
+    return render(
+        request,
+        'accounts/perfil_cliente.html',
+        {
+            'cliente': cliente,
+            'pedidos': pedidos,
+            'ultimo_pedido': ultimo_pedido
+        }
+    )

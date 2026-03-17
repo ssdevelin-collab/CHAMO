@@ -1,27 +1,62 @@
-{% extends 'base.html' %}
-
-{% block chat %}
-    {% include 'chat/chat_widget.html' %}
-{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-body">
-                <h5>💬 Chat — Pedido #{{ pedido.id }}</h5>
-                <p class="text-muted">{{ pedido.servico.nome }}</p>
-                <p>O chat está disponível no canto inferior direito da tela. 👇</p>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        abrirChat({{ conversa.id }}, "{{ pedido.servico.nome }}");
-    });
-</script>
+<div class="container mt-4">
+
+<h4>💬 Conversa</h4>
+
+<div class="card p-3 mb-3" style="height:400px; overflow-y:auto;">
+
+{% for msg in mensagens %}
+
+<div style="margin-bottom:10px;">
+
+<strong>
+{{ msg.remetente.username }}
+</strong>:
+
+{{ msg.texto }}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+<form method="POST">
+{% csrf_token %}
+
+<div class="d-flex gap-2">
+
+<input type="text" name="mensagem" class="form-control" placeholder="Digite sua mensagem...">
+
+<button class="btn btn-primary">
+Enviar
+</button>
+
+</div>
+
+</form>
+
+</div>
+
 {% endblock %}
+<!-- CHAT FLUTUANTE -->
+<div id="chat-box" class="chat-box">
+
+    <div class="chat-header">
+        💬 Chat
+        <span onclick="fecharChat()" style="cursor:pointer;">✖</span>
+    </div>
+
+    <div id="chat-messages" class="chat-messages">
+        Carregando...
+    </div>
+
+    <form id="chat-form">
+        <input type="text" id="chat-input" placeholder="Digite sua mensagem..." required>
+        <button type="submit">Enviar</button>
+    </form>
+
+</div>
