@@ -389,18 +389,38 @@ def buscar_servicos_api(request):
     servicos = Service.objects.filter(
         Q(nome__icontains=termo) |
         Q(categoria__icontains=termo)
-    )[:10]
+    ).select_related('prestador')[:10]
 
     resultado = []
 
     for s in servicos:
+        # Buscar coordenadas do prestador
+        lat = None
+        lng = None
+        
+        try:
+            # Usa o related_name correto: 'perfil_prestador'
+            if hasattr(s.prestador, 'perfil_prestador'):
+                perfil = s.prestador.perfil_prestador
+                lat = float(perfil.latitude) if perfil.latitude else None
+                lng = float(perfil.longitude) if perfil.longitude else None
+                
+                print(f"✅ Prestador: {s.prestador.username}, Lat: {lat}, Lng: {lng}")
+            else:
+                print(f"❌ Prestador {s.prestador.username} não tem perfil_prestador")
+                
+        except Exception as e:
+            print(f"⚠️ Erro ao buscar coordenadas do prestador {s.prestador.username}: {e}")
+        
         resultado.append({
             'id': s.id,
             'nome': s.nome,
             'categoria': s.categoria,
             'prestador': s.prestador.username,
             'prestador_id': s.prestador.id,
-            'preco': float(s.preco)
+            'preco': float(s.preco),
+            'lat': lat,
+            'lng': lng,
         })
 
     return JsonResponse({'servicos': resultado})

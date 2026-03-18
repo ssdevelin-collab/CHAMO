@@ -162,7 +162,7 @@ Chamô
 
 <div class="menu-links">
 <a href="#">Início</a>
-<a href="#">Serviços</a>
+<a href="{% url 'services:lista_servicos' %}">Serviços</a>
 <a href="#">Categorias</a>
 </div>
 
@@ -175,7 +175,7 @@ Chamô
 
 <div class="top-actions">
 
-<a href="/pedidos">
+<a href="{% url 'services:meus_pedidos' %}">
 <button class="btn btn-light btn-sm">
 📦 Pedidos
 </button>
@@ -189,8 +189,9 @@ onclick="usarLocalizacao()">
 📍 Definir localização
 
 </div>
-
+<a href="{% url 'accounts:perfil' %}">
 <button class="btn btn-light btn-sm">👤</button>
+</a>
 
 <a href="/logout">
 <button class="btn btn-outline-secondary btn-sm">Sair</button>
@@ -258,115 +259,260 @@ Profissionais próximos
 
 <script>
 
-let mapa=null;
-let marcadorCliente=null;
+let mapa = null;
+let marcadorCliente = null;
+let marcadoresPrestadores = [];  // Array para armazenar marcadores dos prestadores
 
 /* INICIAR MAPA */
 
-function iniciarMapa(lat,lng){
-
-if(!mapa){
-
-mapa=L.map("mapa").setView([lat,lng],13);
-
-L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-).addTo(mapa);
-
+function iniciarMapa(lat, lng) {
+    
+    if (!mapa) {
+        mapa = L.map("mapa").setView([lat, lng], 13);
+        
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution: '© OpenStreetMap contributors'
+            }
+        ).addTo(mapa);
+    } else {
+        // Se o mapa já existe, apenas move a visualização
+        mapa.setView([lat, lng], 13);
+    }
+    
+    // Remove marcador anterior se existir
+    if (marcadorCliente) {
+        mapa.removeLayer(marcadorCliente);
+    }
+    
+    // Adiciona novo marcador do cliente (azul)
+    marcadorCliente = L.marker([lat, lng], {
+        icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        })
+    }).addTo(mapa);
+    
+    marcadorCliente.bindPopup('<b>Você está aqui</b>').openPopup();
 }
 
-marcadorCliente=L.marker([lat,lng]).addTo(mapa);
+/* LIMPAR MARCADORES DOS PRESTADORES */
 
+function limparMarcadoresPrestadores() {
+    marcadoresPrestadores.forEach(marcador => {
+        mapa.removeLayer(marcador);
+    });
+    marcadoresPrestadores = [];
+}
+
+/* ADICIONAR MARCADOR DO PRESTADOR */
+
+function adicionarMarcadorPrestador(prestador) {
+    
+    // Criar marcador vermelho para prestador
+    const marcador = L.marker([prestador.lat, prestador.lng], {
+        icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        })
+    }).addTo(mapa);
+    
+    // Adicionar popup com informações
+    marcador.bindPopup(`
+        <b>${prestador.nome}</b><br>
+        <small>${prestador.categoria}</small><br>
+        <small>Clique no card para ver mais</small>
+    `);
+    
+    // Adicionar ao array de marcadores
+    marcadoresPrestadores.push(marcador);
+    
+    return marcador;
 }
 
 /* LOCALIZAÇÃO */
 
-function usarLocalizacao(){
-
-navigator.geolocation.getCurrentPosition(function(pos){
-
-const lat=pos.coords.latitude;
-const lng=pos.coords.longitude;
-
-iniciarMapa(lat,lng);
-
-fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-.then(r=>r.json())
-.then(data=>{
-
-const bairro = data.address.suburb || data.address.neighbourhood || "";
-const cidade = data.address.city || data.address.town || "";
-
-document.getElementById("enderecoSelecionado").innerText =
-"📍 " + bairro + ", " + cidade;
-
-});
-
-});
-
+function usarLocalizacao() {
+    
+    if (!navigator.geolocation) {
+        alert('Seu navegador não suporta geolocalização');
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            
+            iniciarMapa(lat, lng);
+            
+            // Buscar endereço
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+                .then(r => r.json())
+                .then(data => {
+                    const bairro = data.address.suburb || data.address.neighbourhood || "";
+                    const cidade = data.address.city || data.address.town || "";
+                    
+                    document.getElementById("enderecoSelecionado").innerText =
+                        "📍 " + bairro + ", " + cidade;
+                })
+                .catch(err => {
+                    console.error('Erro ao buscar endereço:', err);
+                });
+        },
+        function(error) {
+            console.error('Erro de geolocalização:', error);
+            
+            // Se der erro, inicializa com coordenadas padrão
+            iniciarMapaPadrao();
+            
+            alert('Não foi possível obter sua localização. Usando localização padrão.');
+        }
+    );
 }
+
+/* INICIALIZAR MAPA COM LOCALIZAÇÃO PADRÃO */
+
+function iniciarMapaPadrao() {
+    // Coordenadas de Salvador, BA
+    const lat = -12.9714;
+    const lng = -38.5014;
+    
+    iniciarMapa(lat, lng);
+    
+    document.getElementById("enderecoSelecionado").innerText = "📍 Salvador, BA";
+}
+
 /* BUSCAR SERVIÇOS */
 
-function buscarServico(texto){
+function buscarServico(texto) {
+    if (texto.length < 2) {
+        limparMarcadoresPrestadores();
+        document.getElementById("listaPrestadores").innerHTML = "";
+        return;
+    }
+    
+    fetch(`{% url 'services:buscar_servicos_api' %}?q=${texto}`)
+        .then(r => r.json())
+        .then(data => {
+            mostrarResultados(data.servicos);
+        })
+        .catch(err => {
+            console.error('Erro ao buscar serviços:', err);
+        });
+}
 
-    if(texto.length < 2){
-    return
+/* MOSTRAR RESULTADOS */
+
+function mostrarResultados(servicos) {
+    const lista = document.getElementById("listaPrestadores");
+    lista.innerHTML = "";
+    
+    // Limpar marcadores anteriores
+    limparMarcadoresPrestadores();
+    
+    if (servicos.length === 0) {
+        lista.innerHTML = '<p class="text-muted">Nenhum serviço encontrado</p>';
+        return;
     }
     
-    fetch(`/services/api/buscar-servicos/?q=${texto}`)
+    servicos.forEach(s => {
+        const card = document.createElement("div");
+        card.className = "card prestador-card mb-3";
+        
+        card.innerHTML = `
+        <div class="card-body">
+            <strong>${s.nome}</strong><br>
+            <small>${s.categoria}</small><br>
+            Prestador: ${s.prestador}<br>
+            R$ ${s.preco.toFixed(2)}
+        </div>
+        `;
+        
+        card.onclick = () => {
+            // Redireciona para a página do prestador
+            window.location = "{% url 'services:pagina_prestador' 0 %}".replace('0', s.prestador_id);
+        };
+        
+        // Adicionar marcador no mapa se tiver coordenadas
+        if (s.lat && s.lng) {
+            const marcador = adicionarMarcadorPrestador({
+                nome: s.prestador,
+                categoria: s.categoria,
+                lat: s.lat,
+                lng: s.lng
+            });
+            
+            // Ao clicar no card, destacar o marcador
+            card.addEventListener('mouseenter', () => {
+                marcador.openPopup();
+            });
+        }
+        
+        lista.appendChild(card);
+    });
     
-    .then(r=>r.json())
-    
-    .then(data=>{
-    
-    mostrarResultados(data.servicos)
-    
-    })
-    
+    // Ajustar zoom do mapa para mostrar todos os marcadores
+    if (marcadoresPrestadores.length > 0) {
+        const bounds = L.latLngBounds(
+            marcadoresPrestadores.map(m => m.getLatLng())
+        );
+        
+        // Incluir também a localização do cliente
+        if (marcadorCliente) {
+            bounds.extend(marcadorCliente.getLatLng());
+        }
+        
+        mapa.fitBounds(bounds, { padding: [50, 50] });
     }
+}
+
+/* FILTRAR POR CATEGORIA */
+
+function filtrarCategoria(categoria) {
+    window.location = "{% url 'services:lista_servicos' %}?busca=" + categoria;
+}
+
+/* INICIALIZAR PÁGINA */
+
+window.addEventListener('DOMContentLoaded', function() {
+    // Inicializa o mapa com localização padrão ao carregar a página
+    iniciarMapaPadrao();
     
-    
-    /* MOSTRAR RESULTADOS */
-    
-    function mostrarResultados(servicos){
-    
-    const lista = document.getElementById("listaPrestadores")
-    
-    lista.innerHTML = ""
-    
-    servicos.forEach(s=>{
-    
-    const card = document.createElement("div")
-    
-    card.className = "card prestador-card mb-3"
-    
-    card.innerHTML = `
-    
-    <div class="card-body">
-    
-    <strong>${s.nome}</strong><br>
-    
-    <small>${s.categoria}</small><br>
-    
-    Prestador: ${s.prestador}<br>
-    
-    R$ ${s.preco}
-    
-    </div>
-    
-    `
-    
-    card.onclick = () => {
-    
-    window.location = `/services/prestador/${s.id}/`
-    
-    }
-    
-    lista.appendChild(card)
-    
-    })
-    
-    }
+    // Tenta obter localização do usuário automaticamente
+    setTimeout(function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    iniciarMapa(lat, lng);
+                    
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+                        .then(r => r.json())
+                        .then(data => {
+                            const bairro = data.address.suburb || data.address.neighbourhood || "";
+                            const cidade = data.address.city || data.address.town || "";
+                            document.getElementById("enderecoSelecionado").innerText =
+                                "📍 " + bairro + ", " + cidade;
+                        });
+                },
+                function(error) {
+                    console.log('Usuário não permitiu geolocalização:', error);
+                }
+            );
+        }
+    }, 500);
+});
 
 </script>
 
