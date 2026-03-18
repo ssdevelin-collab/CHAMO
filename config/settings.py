@@ -140,6 +140,7 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'
 LOGOUT_REDIRECT_URL = 'accounts:home'
+LOGOUT_REDIRECT_URL = '/login/'
 
 
 ASGI_APPLICATION = 'config.asgi.application'  # troque CHAMO pelo nome do seu projeto

@@ -31,6 +31,7 @@ urlpatterns = [
     #avaliacao
     path('', include('avaliacoes.urls')),
     path('chat/', include('chat.urls')),
+    path('login/', auth_views.LoginView.as_view(), name='login'),
 ]
 
 # SERVIR ARQUIVOS DE MEDIA (FOTOS DE PERFIL)

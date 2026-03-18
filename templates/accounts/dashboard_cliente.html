@@ -27,16 +27,12 @@ gap:20px;
 box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
-/* LOGO */
-
 .logo{
 font-size:22px;
 font-weight:700;
 color:#F97316;
 min-width:90px;
 }
-
-/* MENU */
 
 .menu-links{
 display:flex;
@@ -53,9 +49,7 @@ font-size:14px;
 
 /* BUSCA */
 
-.search-box{
-flex:3;
-}
+.search-box{flex:3;}
 
 .search-box input{
 width:100%;
@@ -73,8 +67,6 @@ display:flex;
 align-items:center;
 gap:10px;
 }
-
-/* ENDEREÇO */
 
 .endereco-topo{
 background:#f3f3f3;
@@ -112,23 +104,42 @@ transition:0.2s;
 transform:translateY(-3px);
 }
 
-.categoria span{
-display:block;
-margin-top:5px;
-font-size:14px;
+/* SERVIÇOS */
+
+.servico-card{
+background:white;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+padding:15px;
+transition:.2s;
+cursor:pointer;
+height:100%;
 }
 
-/* CARDS PRESTADORES */
+.servico-card:hover{
+transform:translateY(-5px);
+}
+
+.servico-img{
+width:100%;
+height:120px;
+border-radius:12px;
+object-fit:cover;
+margin-bottom:10px;
+}
+
+/* PRESTADORES */
 
 .prestador-card{
-border-radius:14px;
-box-shadow:0 8px 20px rgba(0,0,0,0.08);
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
 cursor:pointer;
 transition:.2s;
+background:white;
 }
 
 .prestador-card:hover{
-transform:translateY(-3px);
+transform:translateY(-4px);
 }
 
 .prestador-img{
@@ -152,48 +163,34 @@ box-shadow:0 15px 40px rgba(0,0,0,0.15);
 
 <body>
 
-<!-- NAVBAR -->
-
 <div class="topbar">
 
-<div class="logo">
-Chamô
-</div>
+<div class="logo">Chamô</div>
 
 <div class="menu-links">
 <a href="#">Início</a>
-<a href="{% url 'services:lista_servicos' %}">Serviços</a>
 <a href="#">Categorias</a>
 </div>
 
 <div class="search-box">
-    <input 
-    type="text"
-    placeholder="Buscar serviço ou profissional"
-    onkeyup="buscarServico(this.value)">
-    </div>
+<input type="text" placeholder="Buscar serviço ou profissional" onkeyup="buscarServico(this.value)">
+</div>
 
 <div class="top-actions">
 
 <a href="{% url 'services:meus_pedidos' %}">
-<button class="btn btn-light btn-sm">
-📦 Pedidos
-</button>
+<button class="btn btn-light btn-sm">📦 Pedidos</button>
 </a>
 
-<div
-id="enderecoSelecionado"
-class="endereco-topo"
-onclick="usarLocalizacao()">
-
+<div id="enderecoSelecionado" class="endereco-topo" onclick="usarLocalizacao()">
 📍 Definir localização
-
 </div>
+
 <a href="{% url 'accounts:perfil' %}">
 <button class="btn btn-light btn-sm">👤</button>
 </a>
 
-<a href="/logout">
+<a href="{% url 'logout' %}">
 <button class="btn btn-outline-secondary btn-sm">Sair</button>
 </a>
 
@@ -201,58 +198,37 @@ onclick="usarLocalizacao()">
 
 </div>
 
-<!-- CONTEÚDO -->
-
 <div class="container mt-4">
 
-<h4 class="fw-bold">
-Chamô, {{ user.username }}?
-</h4>
+<h4 class="fw-bold">Chamô, {{ user.username }}?</h4>
+<p class="text-muted">Encontre profissionais perto de você</p>
 
-<p class="text-muted">
-Encontre profissionais perto de você
-</p>
-
-<!-- CATEGORIAS -->
-
-<h5 class="fw-bold mt-4 mb-3">
-Categorias
-</h5>
+<h5 class="fw-bold mt-4 mb-3">Categorias</h5>
 
 <div class="categorias">
-
-<div class="categoria">🧰 <span>Eletricista</span></div>
-<div class="categoria">🚿 <span>Encanador</span></div>
-<div class="categoria">🧹 <span>Diarista</span></div>
-<div class="categoria">🧱 <span>Pedreiro</span></div>
-<div class="categoria">🛠️ <span>Montador</span></div>
-<div class="categoria">❄️ <span>Ar-condicionado</span></div>
-<div class="categoria">💻 <span>Técnico</span></div>
-
+<div class="categoria" onclick="filtrarCategoria('eletricista')">🧰 Eletricista</div>
+<div class="categoria" onclick="filtrarCategoria('encanador')">🚿 Encanador</div>
+<div class="categoria" onclick="filtrarCategoria('diarista')">🧹 Diarista</div>
+<div class="categoria" onclick="filtrarCategoria('pedreiro')">🧱 Pedreiro</div>
 </div>
+
+<h5 class="fw-bold mt-4 mb-3">Serviços disponíveis</h5>
+<div class="row" id="listaServicosHome"></div>
 
 <div class="row mt-4">
 
 <div class="col-md-4">
-
-<h5 class="fw-bold mb-3">
-Profissionais próximos
-</h5>
-
+<h5 class="fw-bold mb-3">Profissionais próximos</h5>
 <div id="listaPrestadores"></div>
-
 </div>
 
 <div class="col-md-8">
-
 <div class="map-container">
 <div id="mapa" style="height:100%"></div>
 </div>
-
 </div>
 
 </div>
-
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -261,257 +237,212 @@ Profissionais próximos
 
 let mapa = null;
 let marcadorCliente = null;
-let marcadoresPrestadores = [];  // Array para armazenar marcadores dos prestadores
+let marcadoresPrestadores = [];
 
-/* INICIAR MAPA */
+let userLat = null;
+let userLng = null;
 
+/* DISTÂNCIA */
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+const R = 6371;
+const dLat = (lat2 - lat1) * Math.PI/180;
+const dLon = (lon2 - lon1) * Math.PI/180;
+
+const a =
+Math.sin(dLat/2) * Math.sin(dLat/2) +
+Math.cos(lat1 * Math.PI/180) *
+Math.cos(lat2 * Math.PI/180) *
+Math.sin(dLon/2) * Math.sin(dLon/2);
+
+const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+return R * c;
+}
+
+/* MAPA */
 function iniciarMapa(lat, lng) {
-    
-    if (!mapa) {
-        mapa = L.map("mapa").setView([lat, lng], 13);
-        
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                attribution: '© OpenStreetMap contributors'
-            }
-        ).addTo(mapa);
-    } else {
-        // Se o mapa já existe, apenas move a visualização
-        mapa.setView([lat, lng], 13);
-    }
-    
-    // Remove marcador anterior se existir
-    if (marcadorCliente) {
-        mapa.removeLayer(marcadorCliente);
-    }
-    
-    // Adiciona novo marcador do cliente (azul)
-    marcadorCliente = L.marker([lat, lng], {
-        icon: L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        })
-    }).addTo(mapa);
-    
-    marcadorCliente.bindPopup('<b>Você está aqui</b>').openPopup();
+
+if (!mapa) {
+mapa = L.map("mapa").setView([lat, lng], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
 }
 
-/* LIMPAR MARCADORES DOS PRESTADORES */
+if (marcadorCliente) mapa.removeLayer(marcadorCliente);
 
-function limparMarcadoresPrestadores() {
-    marcadoresPrestadores.forEach(marcador => {
-        mapa.removeLayer(marcador);
-    });
-    marcadoresPrestadores = [];
+marcadorCliente = L.marker([lat, lng]).addTo(mapa);
 }
-
-/* ADICIONAR MARCADOR DO PRESTADOR */
-
-function adicionarMarcadorPrestador(prestador) {
-    
-    // Criar marcador vermelho para prestador
-    const marcador = L.marker([prestador.lat, prestador.lng], {
-        icon: L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        })
-    }).addTo(mapa);
-    
-    // Adicionar popup com informações
-    marcador.bindPopup(`
-        <b>${prestador.nome}</b><br>
-        <small>${prestador.categoria}</small><br>
-        <small>Clique no card para ver mais</small>
-    `);
-    
-    // Adicionar ao array de marcadores
-    marcadoresPrestadores.push(marcador);
-    
-    return marcador;
-}
-
-/* LOCALIZAÇÃO */
 
 function usarLocalizacao() {
-    
-    if (!navigator.geolocation) {
-        alert('Seu navegador não suporta geolocalização');
-        return;
-    }
-    
-    navigator.geolocation.getCurrentPosition(
-        function(pos) {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            
-            iniciarMapa(lat, lng);
-            
-            // Buscar endereço
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-                .then(r => r.json())
-                .then(data => {
-                    const bairro = data.address.suburb || data.address.neighbourhood || "";
-                    const cidade = data.address.city || data.address.town || "";
-                    
-                    document.getElementById("enderecoSelecionado").innerText =
-                        "📍 " + bairro + ", " + cidade;
-                })
-                .catch(err => {
-                    console.error('Erro ao buscar endereço:', err);
-                });
-        },
-        function(error) {
-            console.error('Erro de geolocalização:', error);
-            
-            // Se der erro, inicializa com coordenadas padrão
-            iniciarMapaPadrao();
-            
-            alert('Não foi possível obter sua localização. Usando localização padrão.');
-        }
-    );
+
+if (!navigator.geolocation) {
+alert("Geolocalização não suportada");
+return;
 }
 
-/* INICIALIZAR MAPA COM LOCALIZAÇÃO PADRÃO */
+navigator.geolocation.getCurrentPosition(
 
-function iniciarMapaPadrao() {
-    // Coordenadas de Salvador, BA
-    const lat = -12.9714;
-    const lng = -38.5014;
-    
-    iniciarMapa(lat, lng);
-    
-    document.getElementById("enderecoSelecionado").innerText = "📍 Salvador, BA";
+(pos) => {
+
+userLat = pos.coords.latitude;
+userLng = pos.coords.longitude;
+
+iniciarMapa(userLat, userLng);
+
+// 🔥 Atualiza endereço bonito
+fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLng}&format=json`)
+.then(r => r.json())
+.then(data => {
+
+const bairro = data.address.suburb || data.address.neighbourhood || "";
+const cidade = data.address.city || data.address.town || "";
+
+document.getElementById("enderecoSelecionado").innerText =
+`📍 ${bairro}, ${cidade}`;
+
+// 🔥 recarrega serviços baseado na localização
+carregarServicosHome();
+
+});
+
+},
+
+() => {
+alert("Não foi possível obter localização");
 }
 
-/* BUSCAR SERVIÇOS */
+);
+}
 
+/* BUSCA */
 function buscarServico(texto) {
-    if (texto.length < 2) {
-        limparMarcadoresPrestadores();
-        document.getElementById("listaPrestadores").innerHTML = "";
-        return;
-    }
-    
-    fetch(`{% url 'services:buscar_servicos_api' %}?q=${texto}`)
-        .then(r => r.json())
-        .then(data => {
-            mostrarResultados(data.servicos);
-        })
-        .catch(err => {
-            console.error('Erro ao buscar serviços:', err);
-        });
+
+if (texto.length < 2) return;
+
+fetch(`{% url 'services:buscar_servicos_api' %}?q=${texto}`)
+.then(r => r.json())
+.then(data => mostrarResultados(data.servicos));
 }
 
-/* MOSTRAR RESULTADOS */
+/* FILTRO */
+function filtrarCategoria(cat) {
+buscarServico(cat);
+}
 
+/* PRESTADORES */
 function mostrarResultados(servicos) {
-    const lista = document.getElementById("listaPrestadores");
-    lista.innerHTML = "";
-    
-    // Limpar marcadores anteriores
-    limparMarcadoresPrestadores();
-    
-    if (servicos.length === 0) {
-        lista.innerHTML = '<p class="text-muted">Nenhum serviço encontrado</p>';
-        return;
-    }
-    
-    servicos.forEach(s => {
-        const card = document.createElement("div");
-        card.className = "card prestador-card mb-3";
-        
-        card.innerHTML = `
-        <div class="card-body">
-            <strong>${s.nome}</strong><br>
-            <small>${s.categoria}</small><br>
-            Prestador: ${s.prestador}<br>
-            R$ ${s.preco.toFixed(2)}
-        </div>
-        `;
-        
-        card.onclick = () => {
-            // Redireciona para a página do prestador
-            window.location = "{% url 'services:pagina_prestador' 0 %}".replace('0', s.prestador_id);
-        };
-        
-        // Adicionar marcador no mapa se tiver coordenadas
-        if (s.lat && s.lng) {
-            const marcador = adicionarMarcadorPrestador({
-                nome: s.prestador,
-                categoria: s.categoria,
-                lat: s.lat,
-                lng: s.lng
-            });
-            
-            // Ao clicar no card, destacar o marcador
-            card.addEventListener('mouseenter', () => {
-                marcador.openPopup();
-            });
-        }
-        
-        lista.appendChild(card);
-    });
-    
-    // Ajustar zoom do mapa para mostrar todos os marcadores
-    if (marcadoresPrestadores.length > 0) {
-        const bounds = L.latLngBounds(
-            marcadoresPrestadores.map(m => m.getLatLng())
-        );
-        
-        // Incluir também a localização do cliente
-        if (marcadorCliente) {
-            bounds.extend(marcadorCliente.getLatLng());
-        }
-        
-        mapa.fitBounds(bounds, { padding: [50, 50] });
-    }
+
+const lista = document.getElementById("listaPrestadores");
+lista.innerHTML = "";
+
+servicos.forEach(s => {
+
+const card = document.createElement("div");
+card.className = "prestador-card mb-3";
+
+card.innerHTML = `
+<div class="p-3 d-flex align-items-center gap-3">
+
+<img src="${s.imagem || 'https://via.placeholder.com/60'}" class="prestador-img">
+
+<div style="flex:1">
+<strong>${s.nome}</strong><br>
+<small class="text-muted">${s.categoria}</small><br>
+<small>⭐ ${s.avaliacao || 4.5}</small>
+</div>
+
+<div style="text-align:right">
+<strong style="color:#F97316">R$ ${s.preco.toFixed(2)}</strong><br>
+<small>${userLat ? calcularDistancia(userLat,userLng,s.lat,s.lng).toFixed(1)+' km' : ''}</small>
+</div>
+
+</div>
+`;
+
+lista.appendChild(card);
+
+});
 }
 
-/* FILTRAR POR CATEGORIA */
+/* SERVIÇOS HOME */
+function carregarServicosHome() {
 
-function filtrarCategoria(categoria) {
-    window.location = "{% url 'services:lista_servicos' %}?busca=" + categoria;
+fetch(`{% url 'services:buscar_servicos_api' %}`)
+.then(r => r.json())
+.then(data => {
+
+if(userLat){
+data.servicos.sort((a,b) => {
+const da = calcularDistancia(userLat, userLng, a.lat, a.lng);
+const db = calcularDistancia(userLat, userLng, b.lat, b.lng);
+return da - db;
+});
 }
 
-/* INICIALIZAR PÁGINA */
+const container = document.getElementById("listaServicosHome");
+container.innerHTML = "";
 
-window.addEventListener('DOMContentLoaded', function() {
-    // Inicializa o mapa com localização padrão ao carregar a página
-    iniciarMapaPadrao();
-    
-    // Tenta obter localização do usuário automaticamente
-    setTimeout(function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(pos) {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    iniciarMapa(lat, lng);
-                    
-                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-                        .then(r => r.json())
-                        .then(data => {
-                            const bairro = data.address.suburb || data.address.neighbourhood || "";
-                            const cidade = data.address.city || data.address.town || "";
-                            document.getElementById("enderecoSelecionado").innerText =
-                                "📍 " + bairro + ", " + cidade;
-                        });
-                },
-                function(error) {
-                    console.log('Usuário não permitiu geolocalização:', error);
-                }
-            );
-        }
-    }, 500);
+data.servicos.forEach(s => {
+
+let distanciaTexto = "";
+
+if(userLat && s.lat){
+const dist = calcularDistancia(userLat, userLng, s.lat, s.lng);
+distanciaTexto = `📍 ${dist.toFixed(1)} km`;
+}
+
+const col = document.createElement("div");
+col.className = "col-md-4 mb-3";
+
+col.innerHTML = `
+<div class="servico-card">
+
+<img src="${s.imagem || 'https://via.placeholder.com/300x120'}" class="servico-img">
+
+<strong>${s.nome}</strong><br>
+
+<small class="text-muted">${s.categoria}</small><br>
+
+<small class="text-muted">${distanciaTexto}</small>
+
+<div class="mt-1">
+<span style="color:#facc15">⭐ ${s.avaliacao || 4.5}</span>
+</div>
+
+<div class="mt-2 d-flex justify-content-between align-items-center">
+
+<span style="color:#F97316; font-weight:600">
+R$ ${s.preco.toFixed(2)}
+</span>
+
+<button class="btn btn-sm btn-success">💬 WhatsApp</button>
+
+</div>
+
+</div>
+`;
+
+const numero = s.telefone || "5599999999999";
+
+col.querySelector("button").onclick = (e) => {
+e.stopPropagation();
+window.open(`https://wa.me/${numero}?text=Olá,%20vi%20seu%20serviço%20no%20Chamô`);
+};
+
+col.onclick = () => {
+window.location = "{% url 'services:pagina_prestador' 0 %}".replace('0', s.prestador_id);
+};
+
+container.appendChild(col);
+
+});
+
+});
+}
+
+/* INIT */
+window.addEventListener("load", () => {
+iniciarMapa(-12.97, -38.50);
+carregarServicosHome();
 });
 
 </script>

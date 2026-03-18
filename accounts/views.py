@@ -8,6 +8,8 @@ from services.forms import ServiceForm
 from chat.models import Conversa
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 from avaliacoes.models import AvaliacaoCliente, AvaliacaoPrestador
 
 
@@ -261,3 +263,7 @@ def perfil_cliente(request, user_id):
             'ultimo_pedido': ultimo_pedido
         }
     )
+
+def sair(request):
+    logout(request)
+    return redirect('/')

@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
 app_name = "accounts"
 name='excluir_conta'
@@ -18,6 +21,9 @@ urlpatterns = [
     path('perfil/', views.perfil_usuario, name='perfil'),
     path('perfil/', views.perfil, name='perfil'),
     path('cliente/<int:user_id>/', views.perfil_cliente, name='perfil_cliente'),
+    path('logout/', views.sair, name='logout'),
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('logout/', sair),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
