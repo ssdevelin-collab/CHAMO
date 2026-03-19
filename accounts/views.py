@@ -221,27 +221,89 @@ def excluir_conta(request):
     user = request.user
     user.delete()
     return redirect('login')
+
 @login_required
 def perfil(request):
+    from avaliacoes.models import AvaliacaoCliente, AvaliacaoPrestador
+    from chat.models import Conversa
 
     user = request.user
-
     prestador = None
     cliente = None
 
+    # Identifica o tipo de usuário
     if hasattr(user, 'perfil_prestador'):
         prestador = user.perfil_prestador
 
     if hasattr(user, 'perfil_cliente'):
         cliente = user.perfil_cliente
 
+    # Busca pagamentos (para ambos os tipos)
+    pagamentos = Pagamento.objects.filter(
+        cliente=user
+    ).order_by('-criado_em')
+
+    # PEDIDOS ACEITOS (conversas ativas)
+    if user.user_type == 'cliente':
+        # Para clientes: pedidos que ELE fez
+        pedidos_aceitos = Pedido.objects.filter(
+            cliente=user,
+            status__in=['aceito', 'em_andamento']
+        ).order_by('-criado_em')
+        
+        pedidos_finalizados = Pedido.objects.filter(
+            cliente=user,
+            status='finalizado'
+        ).order_by('-criado_em')
+        
+    else:  # prestador
+        # Para prestadores: pedidos que ELE recebeu
+        pedidos_aceitos = Pedido.objects.filter(
+            servico__prestador=user,
+            status__in=['aceito', 'em_andamento']
+        ).order_by('-criado_em')
+        
+        pedidos_finalizados = Pedido.objects.filter(
+            servico__prestador=user,
+            status='finalizado'
+        ).order_by('-criado_em')
+
+    # Adiciona a conversa ativa em cada pedido
+    for pedido in pedidos_aceitos:
+        try:
+            pedido.conversa_ativa = pedido.conversa
+        except Exception as e:
+            print(f"Erro ao buscar conversa: {e}")
+            pedido.conversa_ativa = None
+
+    # Verifica se já foi avaliado
+    for pedido in pedidos_finalizados:
+        try:
+            if user.user_type == 'cliente':
+                # Cliente avaliou o prestador?
+                avaliacao = pedido.avaliacao_do_cliente
+            else:
+                # Prestador avaliou o cliente?
+                avaliacao = pedido.avaliacao_do_prestador
+                
+            pedido.ja_avaliado = True
+            pedido.nota_dada = avaliacao.nota
+        except Exception:
+            pedido.ja_avaliado = False
+            pedido.nota_dada = None
+
     context = {
         'user': user,
         'prestador': prestador,
-        'cliente': cliente
+        'cliente': cliente,
+        'pagamentos': pagamentos,
+        'pedidos_aceitos': pedidos_aceitos,
+        'pedidos_finalizados': pedidos_finalizados,
     }
 
     return render(request, 'accounts/perfil.html', context)
+
+
 @login_required
 def perfil_cliente(request, user_id):
 

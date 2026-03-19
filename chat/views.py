@@ -1,42 +1,83 @@
-from django.shortcuts import render, get_object_or_404, redirect
+# chat/views.py
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from services.models import Pedido
+import json
 from .models import Conversa, Mensagem
- 
- 
+from services.models import Pedido
+
 @login_required
-def abrir_chat(request, pedido_id):
-    """
-    Abre ou cria uma conversa para um pedido aceito.
-    Só funciona se o pedido estiver com status 'aceito' ou posterior.
-    """
-    pedido = get_object_or_404(Pedido, id=pedido_id)
- 
-    # Verifica se o usuário é o cliente ou prestador do pedido
-    prestador = pedido.servico.prestador
-    cliente = pedido.cliente
- 
-    if request.user not in [cliente, prestador]:
-        messages.error(request, 'Você não tem acesso a esse chat.')
-        return redirect('home')
- 
-    # Só permite chat após o pedido ser aceito
-    if pedido.status not in ['aceito', 'em_andamento', 'finalizado']:
-        messages.error(request, 'O chat só fica disponível após o pedido ser aceito.')
-        return redirect('home')
- 
-    # Cria a conversa se ainda não existir
-    conversa, _ = Conversa.objects.get_or_create(
-        pedido=pedido,
-        defaults={'cliente': cliente, 'prestador': prestador}
-    )
- 
-    # Busca histórico de mensagens
-    mensagens = conversa.mensagens.select_related('autor').all()
- 
-    return render(request, 'chat/chat.html', {
-        'conversa': conversa,
-        'mensagens': mensagens,
-        'pedido': pedido,
-    })
+def api_mensagens(request, pedido_id):
+    """Retorna mensagens de um pedido"""
+    try:
+        pedido = Pedido.objects.get(id=pedido_id)
+        
+        # Verificar permissão
+        if request.user not in [pedido.cliente, pedido.servico.prestador]:
+            return JsonResponse({'erro': 'Sem permissão'}, status=403)
+        
+        # Buscar ou criar conversa
+        conversa, created = Conversa.objects.get_or_create(
+            pedido=pedido,
+            defaults={
+                'cliente': pedido.cliente,
+                'prestador': pedido.servico.prestador
+            }
+        )
+        
+        # Buscar mensagens
+        mensagens = conversa.mensagens.select_related('autor').all()
+        
+        return JsonResponse({
+            'conversa_id': conversa.id,
+            'mensagens': [
+                {
+                    'texto': m.texto,
+                    'autor_id': m.autor.id,
+                    'autor_nome': m.autor.full_name or m.autor.username,
+                    'enviada_em': m.enviada_em.strftime('%H:%M'),
+                }
+                for m in mensagens
+            ]
+        })
+        
+    except Pedido.DoesNotExist:
+        return JsonResponse({'erro': 'Pedido não encontrado'}, status=404)
+
+
+@login_required
+@csrf_exempt
+def enviar_mensagem(request):
+    """Envia uma mensagem"""
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Método inválido'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        pedido_id = data.get('pedido_id')
+        texto = data.get('texto', '').strip()
+        
+        if not texto:
+            return JsonResponse({'erro': 'Mensagem vazia'}, status=400)
+        
+        pedido = Pedido.objects.get(id=pedido_id)
+        
+        # Verificar permissão
+        if request.user not in [pedido.cliente, pedido.servico.prestador]:
+            return JsonResponse({'erro': 'Sem permissão'}, status=403)
+        
+        # Buscar conversa
+        conversa = Conversa.objects.get(pedido=pedido)
+        
+        # Criar mensagem
+        Mensagem.objects.create(
+            conversa=conversa,
+            autor=request.user,
+            texto=texto
+        )
+        
+        return JsonResponse({'ok': True})
+        
+    except Exception as e:
+        return JsonResponse({'erro': str(e)}, status=400)
